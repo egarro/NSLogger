@@ -72,6 +72,8 @@
 
 @end
 
+extern NSString * const kPrefIdleDefTime;
+extern NSString * const kPrefMaxLogSize;
 extern NSString * const kPrefLogPath;
 extern NSString * const kPrefUseConnectionManager;
 extern NSString * const kPrefKeepMultipleRuns;

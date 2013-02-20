@@ -39,6 +39,8 @@
 #import "LoggerMessageCell.h"
 
 
+NSString * const kPrefIdleDefTime = @"idleDefinitionTime";
+NSString * const kPrefMaxLogSize = @"maximumLogSize";
 NSString * const kPrefLogPath = @"preferredLogPath";
 NSString * const kPrefUseConnectionManager = @"useConnectionManager";
 NSString * const kPrefKeepMultipleRuns = @"keepMultipleRuns";
@@ -70,6 +72,8 @@ NSString * const kPref_ApplicationFilterSet = @"appFilterSet";
 						 [NSNumber numberWithInteger:50000], kPrefDirectTCPIPResponderPort,
                          [NSNumber numberWithBool:YES], kPrefUseConnectionManager,
                          @"/Users/gamest/Desktop/logs", kPrefLogPath,
+                         [NSNumber numberWithInteger:600], kPrefIdleDefTime,
+                         [NSNumber numberWithInteger:50], kPrefMaxLogSize,
 						 @"", kPrefBonjourServiceName,
 						 nil];
 		[pool release];

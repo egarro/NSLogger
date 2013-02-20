@@ -89,6 +89,7 @@
 								<int key="NSvFlags">268</int>
 								<string key="NSFrame">{{0, 14}, {117, 22}}</string>
 								<reference key="NSSuperview"/>
+								<reference key="NSNextKeyView"/>
 								<bool key="NSEnabled">YES</bool>
 								<object class="NSSearchFieldCell" key="NSCell" id="490457310">
 									<int key="NSCellFlags">342884416</int>
@@ -222,6 +223,7 @@
 								<int key="NSvFlags">268</int>
 								<string key="NSFrame">{{0, 14}, {100, 25}}</string>
 								<reference key="NSSuperview"/>
+								<reference key="NSNextKeyView"/>
 								<bool key="NSEnabled">YES</bool>
 								<object class="NSPopUpButtonCell" key="NSCell" id="938642101">
 									<int key="NSCellFlags">-2080244160</int>

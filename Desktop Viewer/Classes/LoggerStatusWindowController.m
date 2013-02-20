@@ -118,8 +118,11 @@ NSString * const kShowStatusInStatusWindowNotification = @"ShowStatusInStatusWin
             if (connectionController == nil) {
  
                 connectionController = [[MMConnectionManagerWindowController alloc] initWithWindowNibName:@"MMConnectionManager"];
-                NSRect frame = self.window.frame;
-                frame.origin.x -= connectionController.window.frame.size.width;
+                NSRect frame = connectionController.window.frame;
+                
+                frame.origin.x = self.window.frame.origin.x - frame.size.width;
+                frame.origin.y = self.window.frame.origin.y;
+                
                 [connectionController.window setFrame:frame display:YES animate:YES];
                 [connectionController showWindow:self];
             

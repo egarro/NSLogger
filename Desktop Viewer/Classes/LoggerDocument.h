@@ -41,6 +41,8 @@
     
     NSUInteger tag;
     NSUInteger messageCounter;
+    NSUInteger idleDefinitionTime;
+    NSUInteger maximumMessagesPerLog;
     
     BOOL active;
     BOOL disconnected;

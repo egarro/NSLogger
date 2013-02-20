@@ -36,9 +36,6 @@
 #import "LoggerNativeMessage.h"
 #import "LoggerAppDelegate.h"
 
-#define SAVING_MESSAGES_INTERVAL 40
-//#define IDLE_DEFINITION_TIME 600  //10 Minutes
-#define IDLE_DEFINITION_TIME 30  //30 Seconds
 
 @implementation LoggerDocument
 
@@ -71,6 +68,8 @@
 		[attachedLogs addObject:aConnection];
 		currentConnection = aConnection;
         messageCounter = 0;
+        idleDefinitionTime = [[[NSUserDefaults standardUserDefaults] objectForKey:@"idleDefinitionTime"] integerValue];
+        maximumMessagesPerLog = [[[NSUserDefaults standardUserDefaults] objectForKey:@"maximumLogSize"] integerValue];
         idleTimer = nil;
 	}
 	return self;
@@ -506,9 +505,8 @@ didReceiveMessages:(NSArray *)theMessages
         self.idle = NO;
         self.disconnected = NO;
         
-        
         messageCounter += 1;
-        if (messageCounter > SAVING_MESSAGES_INTERVAL) {
+        if (messageCounter > maximumMessagesPerLog) {
             //Reset Counter;
             messageCounter = 0;
             
@@ -528,7 +526,7 @@ didReceiveMessages:(NSArray *)theMessages
                 idleTimer = nil;
             }
             
-            idleTimer = [NSTimer scheduledTimerWithTimeInterval:(NSTimeInterval)IDLE_DEFINITION_TIME
+            idleTimer = [NSTimer scheduledTimerWithTimeInterval:(NSTimeInterval)idleDefinitionTime
                                                          target:self
                                                        selector:@selector(makeIdle)
                                                        userInfo:nil
