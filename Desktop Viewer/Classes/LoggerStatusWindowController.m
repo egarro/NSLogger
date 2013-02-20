@@ -33,10 +33,13 @@
 #import "LoggerTransport.h"
 #import "LoggerConnection.h"
 #import "LoggerTransportStatusCell.h"
+#import "MMConnectionManagerWindowController.h"
 
 NSString * const kShowStatusInStatusWindowNotification = @"ShowStatusInStatusWindowNotification";
 
 @implementation LoggerStatusWindowController
+
+@synthesize connectionController;
 
 - (void)dealloc
 {
@@ -48,7 +51,8 @@ NSString * const kShowStatusInStatusWindowNotification = @"ShowStatusInStatusWin
 - (void)windowDidLoad
 {
 	transportStatusCell = [[LoggerTransportStatusCell alloc] init];
-
+    connectionController = nil;
+    
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(showStatus:)
 												 name:kShowStatusInStatusWindowNotification
@@ -62,8 +66,18 @@ NSString * const kShowStatusInStatusWindowNotification = @"ShowStatusInStatusWin
 	dispatch_async(dispatch_get_main_queue(), ^{
 		[statusTable reloadData];
 	});
+    
+    if (connectionController != nil) {
+        [connectionController reloadTable];
+    }
 }
 
+//MM ADDITION POINT
+-(void)reloadSubtable {
+    if (connectionController != nil) {
+        [connectionController reloadTable];
+    }
+}
 
 // -----------------------------------------------------------------------------
 #pragma mark -
@@ -73,12 +87,58 @@ NSString * const kShowStatusInStatusWindowNotification = @"ShowStatusInStatusWin
 {
 	if (row < [((LoggerAppDelegate *)[NSApp delegate]).transports count])
 		return transportStatusCell;
+    
 	return nil;
 }
 
 - (BOOL)tableView:(NSTableView *)aTableView shouldSelectRow:(NSInteger)rowIndex
 {
-	return NO;
+   return NO;
+}
+
+
+//MM ADDITION POINT
+- (IBAction)tableViewDidSelectRow:(id)sender
+{
+    
+    //MM ADDITION POINT:
+    //Check whether we should add an entry to the Connection Manager or display a window.
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:kPrefUseConnectionManager]) {
+        
+    
+      NSInteger selectedRow = [(NSTableView *)sender clickedRow];
+    
+      NSArray *transports = ((LoggerAppDelegate *)[NSApp delegate]).transports;
+      if (selectedRow < [transports count]) {
+        NSString *cellInfo = [(LoggerTransport *)[transports objectAtIndex:selectedRow] transportInfoString];
+        if (([cellInfo rangeOfString:@"TCP/IP"]).location != NSNotFound) {
+            [(NSTableView *)sender selectRowIndexes:[NSIndexSet indexSetWithIndex:selectedRow] byExtendingSelection:NO];
+
+            // Prepare the Connection Manager Window:
+            if (connectionController == nil) {
+ 
+                connectionController = [[MMConnectionManagerWindowController alloc] initWithWindowNibName:@"MMConnectionManager"];
+                NSRect frame = self.window.frame;
+                frame.origin.x -= connectionController.window.frame.size.width;
+                [connectionController.window setFrame:frame display:YES animate:YES];
+                [connectionController showWindow:self];
+            
+            }
+            else {
+                [connectionController.window orderOut:nil];
+                connectionController = nil;
+            }
+            
+            //Deselect this shit:
+            [self performSelector:@selector(deselectTableRow:) withObject:[NSNumber numberWithInteger:selectedRow] afterDelay:0.2];
+        }
+      }
+    
+    }
+}
+
+- (void)deselectTableRow:(NSNumber *)aRow {
+    [statusTable deselectRow:[aRow integerValue]];
 }
 
 // -----------------------------------------------------------------------------

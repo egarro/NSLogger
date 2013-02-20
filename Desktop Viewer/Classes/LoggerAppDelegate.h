@@ -32,6 +32,7 @@
 
 @class LoggerConnection, LoggerTransport, LoggerStatusWindowController, LoggerPrefsWindowController;
 
+
 @interface LoggerAppDelegate : NSObject
 {
 	CFArrayRef serverCerts;
@@ -41,12 +42,16 @@
 	NSArray *filtersSortDescriptors;
 	LoggerStatusWindowController *statusController;
 	LoggerPrefsWindowController *prefsController;
+    
+    //MM ADDITION POINT
+    NSMutableArray *documents;
 }
 
 @property (nonatomic, readonly) CFArrayRef serverCerts;
 @property (nonatomic, readonly) BOOL serverCertsLoadAttempted;
 @property (nonatomic, readonly) NSMutableArray *transports;
 @property (nonatomic, readonly) NSMutableArray *filterSets;
+@property (nonatomic, readonly) NSMutableArray *documents;
 @property (nonatomic, retain) NSArray *filtersSortDescriptors;
 @property (nonatomic, readonly) LoggerStatusWindowController *statusController;
 
@@ -62,8 +67,13 @@
 
 - (BOOL)loadEncryptionCertificate:(NSError **)outError;
 
+//MM ADDITION POINT
+- (void)reloadSubtable;
+
 @end
 
+extern NSString * const kPrefLogPath;
+extern NSString * const kPrefUseConnectionManager;
 extern NSString * const kPrefKeepMultipleRuns;
 extern NSString * const kPrefCloseWithoutSaving;
 

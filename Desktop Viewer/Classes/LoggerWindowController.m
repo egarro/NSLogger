@@ -625,6 +625,25 @@ static NSArray *sXcodeFileExtensions = nil;
 	[filterTable setBackgroundColor:bgColor];
 }
 
+- (BOOL)windowShouldClose:(id)sender {
+    
+    //MM ADDITION POINT:
+    //Prevent people from closing the Window when the Connection Manager is on:
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:kPrefUseConnectionManager]) {
+        return YES;
+    }
+    else {
+        //Hide the window, but don't destroy it!
+        [self.window orderOut:nil];
+        return NO;
+    }
+}
+
+//-(void)windowWillClose:(NSNotification *)notification {
+//
+//    NSLog(@"Window will close!");
+//}
+
 // -----------------------------------------------------------------------------
 #pragma mark -
 #pragma mark Quick filter

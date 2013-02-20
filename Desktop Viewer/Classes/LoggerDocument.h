@@ -36,15 +36,38 @@
 {
 	NSMutableArray *attachedLogs;
 	LoggerConnection *currentConnection;			// the connection currently visible in the main window
+
+    //MM ADDITION POINT
+    
+    NSUInteger tag;
+    NSUInteger messageCounter;
+    
+    BOOL active;
+    BOOL disconnected;
+    BOOL idle;
+    
+    NSTimer *idleTimer;
+    
 }
 
+@property (nonatomic, readwrite) NSUInteger tag;
 @property (nonatomic, readonly) NSArray *attachedLogs;
 @property (nonatomic, retain) NSNumber *indexOfCurrentVisibleLog;
+@property (nonatomic, assign) LoggerConnection *currentConnection;
+@property (nonatomic, assign) BOOL idle;
+@property (nonatomic, assign) BOOL active;
+@property (nonatomic, assign) BOOL disconnected;
 
 - (id)initWithConnection:(LoggerConnection *)aConnection;
 - (LoggerWindowController *)mainWindowController;
 - (NSArray *)attachedLogsPopupNames;
 - (void)addConnection:(LoggerConnection *)newConnection;
 - (void)clearLogs:(BOOL)includingPreviousRuns;
+
+
+//MM ADDITION POINT:
+- (void)hideMainWindow;
+- (void)showMainWindow;
+- (void)saveThisLog;
 
 @end

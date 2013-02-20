@@ -30,13 +30,23 @@
  */
 
 @class LoggerTransportStatusCell;
+@class MMConnectionManagerWindowController;
 
 @interface LoggerStatusWindowController : NSWindowController <NSTableViewDelegate, NSTableViewDataSource>
 {
 	LoggerTransportStatusCell *transportStatusCell;
 	
 	IBOutlet NSTableView *statusTable;
+    
+    //MM ADDITION POINT
+    MMConnectionManagerWindowController *connectionController;
 }
+
+@property (nonatomic, readonly) MMConnectionManagerWindowController *connectionController;
+
+
+- (IBAction)tableViewDidSelectRow:(id)sender;
+- (void)reloadSubtable;
 
 @end
 

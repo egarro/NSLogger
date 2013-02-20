@@ -36,9 +36,16 @@
 #import "LoggerNativeMessage.h"
 #import "LoggerAppDelegate.h"
 
+#define SAVING_MESSAGES_INTERVAL 40
+//#define IDLE_DEFINITION_TIME 600  //10 Minutes
+#define IDLE_DEFINITION_TIME 30  //30 Seconds
+
 @implementation LoggerDocument
 
 @synthesize attachedLogs;
+@synthesize tag, active, disconnected, idle;
+@synthesize currentConnection;
+
 @dynamic indexOfCurrentVisibleLog;
 
 + (BOOL)canConcurrentlyReadDocumentsOfType:(NSString *)typeName
@@ -63,6 +70,8 @@
 		aConnection.delegate = self;
 		[attachedLogs addObject:aConnection];
 		currentConnection = aConnection;
+        messageCounter = 0;
+        idleTimer = nil;
 	}
 	return self;
 }
@@ -186,6 +195,11 @@
 	
 	// Bring window to front
 	[mainWindow showWindow:self];
+    
+    //MM ADDITION POINT:
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:kPrefUseConnectionManager]) {
+        [mainWindow.window orderOut:nil];
+    }
 }
 
 - (void)dealloc
@@ -200,8 +214,10 @@
 	[super dealloc];
 }
 
+
 - (BOOL)writeToURL:(NSURL *)absoluteURL ofType:(NSString *)typeName error:(NSError **)outError
 {
+        
 	if ([typeName isEqualToString:@"NSLogger Data"])
 	{
 		NSData *data = [NSKeyedArchiver archivedDataWithRootObject:attachedLogs];
@@ -269,6 +285,9 @@
 		[allMessages release];
 		return result;
 	}
+    
+    
+    
 	return NO;
 }
 
@@ -338,11 +357,109 @@
 	self.indexOfCurrentVisibleLog = [NSNumber numberWithInteger:[attachedLogs indexOfObjectIdenticalTo:currentConnection]];
 }
 
+/////////////////////////////MM ADDITION POINT:
+
+- (void)hideMainWindow {
+    
+    if ([self.windowControllers count] > 0) {
+        
+    LoggerWindowController *controller = [self.windowControllers objectAtIndex:0];
+    [controller.window orderOut:nil];
+        
+    }
+}
+
+- (void)showMainWindow {
+    
+    if ([self.windowControllers count] > 0) {
+
+        LoggerWindowController *controller = [self.windowControllers objectAtIndex:0];
+        [controller showWindow:nil];
+        [controller.window makeKeyAndOrderFront:nil]; // to actually show it
+    }
+    
+}
+
+- (void)saveThisLog {
+    //Calculate the path:
+    
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:kPrefUseConnectionManager]) {
+        
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSString *mainDirectory = [[NSUserDefaults standardUserDefaults] objectForKey:@"preferredLogPath"];
+	NSString *subdirectory = [NSString stringWithFormat:@"%@/%@",self.currentConnection.clientName,self.currentConnection.clientUDID];
+    
+    NSDate *today = [NSDate date];
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"dd-MM-yyyy"];
+    NSString *dateString = [dateFormatter stringFromDate:today];
+    
+    NSString *directory = [NSString stringWithFormat:@"%@/%@/%@/",[mainDirectory stringByExpandingTildeInPath],subdirectory,dateString];
+    [fileManager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:nil error:nil];
+    
+    [dateFormatter setDateFormat:@"HH-mm-ss"];
+    NSString *timeString = [dateFormatter stringFromDate:today];
+    
+    NSString *thisFile = [NSString stringWithFormat:@"%@.nsloggerdata",timeString];
+    
+	NSString *filePath = [directory stringByAppendingString:thisFile];
+    NSURL *fileURL = [NSURL fileURLWithPath:filePath];
+
+    //Performing actual save:
+    [self saveToURL:fileURL ofType:@"NSLogger Data" forSaveOperation:NSSaveToOperation delegate:self didSaveSelector:@selector(saveDidFinish) contextInfo:nil];
+    
+    }
+}
+
+-(void)saveDidFinish {
+
+    //Flush the log:
+    [self clearLogs:YES];
+    [self hideMainWindow];
+
+}
+
+-(void)makeDisconnected {
+    
+    if (idleTimer != nil && [idleTimer isValid]) {
+        [idleTimer invalidate];
+        idleTimer = nil;
+    }
+    
+    self.active = NO;
+    self.disconnected = YES;
+    self.idle = NO;
+}
+
+-(void)makeIdle {
+    idleTimer = nil;
+    
+    self.active = NO;
+    self.disconnected = NO;
+    self.idle = YES;
+    
+    [(LoggerAppDelegate *)[NSApp delegate] reloadSubtable];
+}
+
+-(void)makeActive {
+    self.active = YES;
+    self.disconnected = NO;
+    self.idle = NO;
+
+    [(LoggerAppDelegate *)[NSApp delegate] reloadSubtable];
+}
+
+
+////////////////////////////
+
+
+
 - (BOOL)prepareSavePanel:(NSSavePanel *)sp
 {
     // assign defaults for the save panel
     [sp setTitle:NSLocalizedString(@"Save Logs", @"")];
     [sp setExtensionHidden:NO];
+        
     return YES;
 }
 
@@ -354,6 +471,8 @@
 	return array;
 }
 
+
+
 - (LoggerWindowController *)mainWindowController
 {
 	for (LoggerWindowController *controller in [self windowControllers])
@@ -361,6 +480,7 @@
 		if ([controller isKindOfClass:[LoggerWindowController class]])
 			return controller;
 	}
+    
 	assert(false);
 	return nil;
 }
@@ -378,19 +498,57 @@ didReceiveMessages:(NSArray *)theMessages
 		[wc connection:theConnection didReceiveMessages:theMessages range:rangeInMessagesList];
 	if (theConnection.connected)
 	{
+        if (self.idle || self.disconnected) {
+            [self makeActive];
+        }
+        
+        self.active = YES;
+        self.idle = NO;
+        self.disconnected = NO;
+        
+        
+        messageCounter += 1;
+        if (messageCounter > SAVING_MESSAGES_INTERVAL) {
+            //Reset Counter;
+            messageCounter = 0;
+            
+            //Perform Log save:
+            [self saveThisLog];
+        }
+        
 		// fixed a crash where calling updateChangeCount: which does not appear to be
 		// safe when called from a secondary thread
 		dispatch_async(dispatch_get_main_queue(), ^{
 			[self updateChangeCount:NSChangeDone];
+            
+            
+            //MM ADDITION POINT
+            if (idleTimer != nil && [idleTimer isValid]) {
+                [idleTimer invalidate];
+                idleTimer = nil;
+            }
+            
+            idleTimer = [NSTimer scheduledTimerWithTimeInterval:(NSTimeInterval)IDLE_DEFINITION_TIME
+                                                         target:self
+                                                       selector:@selector(makeIdle)
+                                                       userInfo:nil
+                                                        repeats:NO];
 		});
 	}
 }
 
 - (void)remoteDisconnected:(LoggerConnection *)theConnection
 {
+    
 	LoggerWindowController *wc = [self mainWindowController];
 	if (wc.attachedConnection == theConnection)
 		[wc remoteDisconnected:theConnection];
+    
+    //MM ADDITION POINT
+    //Perform Log save:
+    [self saveThisLog];
+    [self makeDisconnected];
+    
 }
 
 @end

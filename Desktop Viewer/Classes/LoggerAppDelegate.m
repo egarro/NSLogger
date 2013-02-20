@@ -38,6 +38,9 @@
 #import "LoggerPrefsWindowController.h"
 #import "LoggerMessageCell.h"
 
+
+NSString * const kPrefLogPath = @"preferredLogPath";
+NSString * const kPrefUseConnectionManager = @"useConnectionManager";
 NSString * const kPrefKeepMultipleRuns = @"keepMultipleRuns";
 NSString * const kPrefCloseWithoutSaving = @"closeWithoutSaving";
 
@@ -52,6 +55,7 @@ NSString * const kPref_ApplicationFilterSet = @"appFilterSet";
 @implementation LoggerAppDelegate
 @synthesize transports, filterSets, filtersSortDescriptors, statusController;
 @synthesize serverCerts, serverCertsLoadAttempted;
+@synthesize documents;
 
 + (NSDictionary *)defaultPreferences
 {
@@ -64,6 +68,8 @@ NSString * const kPref_ApplicationFilterSet = @"appFilterSet";
 						 [NSNumber numberWithBool:YES], kPrefPublishesBonjourService,
 						 [NSNumber numberWithBool:NO], kPrefHasDirectTCPIPResponder,
 						 [NSNumber numberWithInteger:50000], kPrefDirectTCPIPResponderPort,
+                         [NSNumber numberWithBool:YES], kPrefUseConnectionManager,
+                         @"/Users/gamest/Desktop/logs", kPrefLogPath,
 						 @"", kPrefBonjourServiceName,
 						 nil];
 		[pool release];
@@ -81,7 +87,7 @@ NSString * const kPref_ApplicationFilterSet = @"appFilterSet";
 	if ((self = [super init]) != nil)
 	{
 		transports = [[NSMutableArray alloc] init];
-
+        documents = [[NSMutableArray alloc] init];
 		// default filter ordering. The first sort descriptor ensures that the object with
 		// uid 1 (the "Default Set" filter set or "All Logs" filter) is always on top. Other
 		// items are ordered by title.
@@ -161,7 +167,10 @@ NSString * const kPref_ApplicationFilterSet = @"appFilterSet";
 {
 	if (serverCerts != NULL)
 		CFRelease(serverCerts);
-	[transports release];
+	
+    [transports release];
+    [documents release];
+    
 	[super dealloc];
 }
 
@@ -302,10 +311,26 @@ NSString * const kPref_ApplicationFilterSet = @"appFilterSet";
 	// Instantiate a new window for this connection
 	LoggerDocument *doc = [[LoggerDocument alloc] initWithConnection:aConnection];
 	[docController addDocument:doc];
-	[doc makeWindowControllers];
-	[doc showWindows];
-	[doc release];
+    [doc makeWindowControllers];
+    
+    //MM ADDITION POINT:
+    //Check whether we should add an entry to the Connection Manager or display a window.
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:kPrefUseConnectionManager]) {
+        [doc showWindows];
+    }
+    else {
+         [doc hideMainWindow];
+    }
+    
+    
+    NSUInteger tag = [documents count];
+    doc.tag = tag;
+    [documents addObject:doc];    
+    
+    [doc release];
 }
+
+
 
 - (NSMutableArray *)defaultFilters
 {
@@ -365,6 +390,12 @@ NSString * const kPref_ApplicationFilterSet = @"appFilterSet";
 	[self relaunchApplication];
 	return NO;
 }
+
+//MM ADDITION POINT
+- (void)reloadSubtable {
+    [self.statusController reloadSubtable];
+}
+
 
 // -----------------------------------------------------------------------------
 #pragma mark -
