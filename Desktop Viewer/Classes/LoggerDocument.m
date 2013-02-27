@@ -30,6 +30,7 @@
  */
 #import "LoggerDocument.h"
 #import "LoggerWindowController.h"
+#import "MMLoggerWindowController.h"
 #import "LoggerTransport.h"
 #import "LoggerCommon.h"
 #import "LoggerConnection.h"
@@ -64,6 +65,8 @@
 	if ((self = [super init]) != nil)
 	{
 		attachedLogs = [[NSMutableArray alloc] init];
+        
+        NSLog(@"Setting the connection delegate to this document");
 		aConnection.delegate = self;
 		[attachedLogs addObject:aConnection];
 		currentConnection = aConnection;
@@ -115,6 +118,7 @@
 
 - (void)addConnection:(LoggerConnection *)newConnection
 {
+    NSLog(@"addConnection setting delegate!");
 	newConnection.delegate = self;
 	[attachedLogs addObject:newConnection];
 
@@ -175,13 +179,21 @@
 
 	// First, close all non-main window attached windows
 	NSMutableArray *windowsToClose = [NSMutableArray array];
-	LoggerWindowController *mainWindow = nil;
+	//LoggerWindowController *mainWindow = nil;
+    MMLoggerWindowController *mainWindow = nil;
+    
 	for (NSWindowController *wc in [self windowControllers])
 	{
-		if (![wc isKindOfClass:[LoggerWindowController class]])
+//		if (![wc isKindOfClass:[LoggerWindowController class]])
+//			[windowsToClose addObject:wc];
+//		else
+//			mainWindow = (LoggerWindowController *)wc;
+		if (![wc isKindOfClass:[MMLoggerWindowController class]])
 			[windowsToClose addObject:wc];
 		else
-			mainWindow = (LoggerWindowController *)wc;
+			mainWindow = (MMLoggerWindowController *)wc;
+        
+        
 	}
 	for (NSWindowController *wc in windowsToClose)
 		[wc close];
@@ -348,7 +360,9 @@
 
 - (void)makeWindowControllers
 {
-	LoggerWindowController *controller = [[LoggerWindowController alloc] initWithWindowNibName:@"LoggerWindow"];
+//	LoggerWindowController *controller = [[LoggerWindowController alloc] initWithWindowNibName:@"LoggerWindow"];
+    MMLoggerWindowController *controller = [[MMLoggerWindowController alloc] initWithWindowNibName:@"MMLoggerWindow"];
+    
 	[self addWindowController:controller];
 	[controller release];
 
@@ -358,11 +372,30 @@
 
 /////////////////////////////MM ADDITION POINT:
 
+//- (void)assignConnectionToDocument {
+//    MMEmptyLoggerWindowController *controller = [[MMEmptyLoggerWindowController alloc] init];
+//	[self addWindowController:controller];
+//	[controller release];
+//    
+//	// force assignment of the current connection to the main window
+//	self.indexOfCurrentVisibleLog = [NSNumber numberWithInteger:[attachedLogs indexOfObjectIdenticalTo:currentConnection]];
+//}
+
+- (void)destroyMainWindow {
+//    for (LoggerWindowController *controller in self.windowControllers) {
+      for (MMLoggerWindowController *controller in self.windowControllers) {
+        [self removeWindowController:controller];
+    }
+}
+
 - (void)hideMainWindow {
     
     if ([self.windowControllers count] > 0) {
         
-    LoggerWindowController *controller = [self.windowControllers objectAtIndex:0];
+    //LoggerWindowController *controller = [self.windowControllers objectAtIndex:0];
+    MMLoggerWindowController *controller = [self.windowControllers objectAtIndex:0];
+        
+        
     [controller.window orderOut:nil];
         
     }
@@ -372,12 +405,15 @@
     
     if ([self.windowControllers count] > 0) {
 
-        LoggerWindowController *controller = [self.windowControllers objectAtIndex:0];
+        //LoggerWindowController *controller = [self.windowControllers objectAtIndex:0];
+        MMLoggerWindowController *controller = [self.windowControllers objectAtIndex:0];
+
         [controller showWindow:nil];
         [controller.window makeKeyAndOrderFront:nil]; // to actually show it
     }
     
 }
+
 
 - (void)saveThisLog {
     //Calculate the path:
@@ -431,6 +467,8 @@
 }
 
 -(void)makeIdle {
+    NSLog(@"Making Idle");
+    
     idleTimer = nil;
     
     self.active = NO;
@@ -472,11 +510,23 @@
 
 
 
-- (LoggerWindowController *)mainWindowController
+//- (LoggerWindowController *)mainWindowController
+//{
+//	for (LoggerWindowController *controller in [self windowControllers])
+//	{
+//		if ([controller isKindOfClass:[LoggerWindowController class]])
+//			return controller;
+//	}
+//    
+//	assert(false);
+//	return nil;
+//}
+
+- (MMLoggerWindowController *)mainWindowController
 {
-	for (LoggerWindowController *controller in [self windowControllers])
+	for (MMLoggerWindowController *controller in [self windowControllers])
 	{
-		if ([controller isKindOfClass:[LoggerWindowController class]])
+		if ([controller isKindOfClass:[MMLoggerWindowController class]])
 			return controller;
 	}
     
@@ -492,9 +542,14 @@
 didReceiveMessages:(NSArray *)theMessages
 			 range:(NSRange)rangeInMessagesList
 {
-	LoggerWindowController *wc = [self mainWindowController];
+	//LoggerWindowController *wc = [self mainWindowController];
+	MMLoggerWindowController *wc = [self mainWindowController];
+    
 	if (wc.attachedConnection == theConnection)
 		[wc connection:theConnection didReceiveMessages:theMessages range:rangeInMessagesList];
+    
+        NSLog(@"1 - Getting message %d",messageCounter);
+    
 	if (theConnection.connected)
 	{
         if (self.idle || self.disconnected) {
@@ -506,6 +561,8 @@ didReceiveMessages:(NSArray *)theMessages
         self.disconnected = NO;
         
         messageCounter += 1;
+        NSLog(@"2 - Getting message %d",messageCounter);
+        
         if (messageCounter > maximumMessagesPerLog) {
             //Reset Counter;
             messageCounter = 0;
@@ -538,8 +595,10 @@ didReceiveMessages:(NSArray *)theMessages
 - (void)remoteDisconnected:(LoggerConnection *)theConnection
 {
     
-	LoggerWindowController *wc = [self mainWindowController];
-	if (wc.attachedConnection == theConnection)
+	//LoggerWindowController *wc = [self mainWindowController];
+	MMLoggerWindowController *wc = [self mainWindowController];
+	
+    if (wc.attachedConnection == theConnection)
 		[wc remoteDisconnected:theConnection];
     
     //MM ADDITION POINT

@@ -33,6 +33,7 @@
 #import "LoggerMessage.h"
 #import "LoggerUtils.h"
 #import "LoggerWindowController.h"
+#import "MMLoggerWindowController.h"
 #import "NSColor+NSLogger.h"
 
 #define MAX_DATA_LINES				16				// max number of data lines to show
@@ -669,9 +670,14 @@ NSString * const kMessageColumnWidthsChangedNotification = @"MessageColumnWidths
 	int level = message.level;
 	if ([tag length] || level)
 	{
-		LoggerWindowController *wc = [[[self controlView] window] windowController];
-		CGFloat threadColumnWidth = ([wc isKindOfClass:[LoggerWindowController class]]) ? wc.threadColumnWidth : DEFAULT_THREAD_COLUMN_WIDTH;
-		NSSize tagSize = NSZeroSize;
+//		LoggerWindowController *wc = [[[self controlView] window] windowController];
+//		CGFloat threadColumnWidth = ([wc isKindOfClass:[LoggerWindowController class]]) ? wc.threadColumnWidth : DEFAULT_THREAD_COLUMN_WIDTH;
+
+        MMLoggerWindowController *wc = [[[self controlView] window] windowController];
+		CGFloat threadColumnWidth = ([wc isKindOfClass:[MMLoggerWindowController class]]) ? wc.threadColumnWidth : DEFAULT_THREAD_COLUMN_WIDTH;
+
+        
+        NSSize tagSize = NSZeroSize;
 		NSSize levelSize = NSZeroSize;
 		NSString *levelString = nil;
 		r.origin.y += NSHeight(r);
@@ -979,8 +985,13 @@ NSString * const kMessageColumnWidthsChangedNotification = @"MessageColumnWidths
 	CGContextAddLineToPoint(ctx, floorf(NSMinX(cellFrame) + TIMESTAMP_COLUMN_WIDTH), floorf(NSMaxY(cellFrame)-1));
 	
 	// thread/message separator
-    LoggerWindowController *wc = [[[self controlView] window] windowController];
-	CGFloat threadColumnWidth = ([wc isKindOfClass:[LoggerWindowController class]]) ? wc.threadColumnWidth : DEFAULT_THREAD_COLUMN_WIDTH;
+//  LoggerWindowController *wc = [[[self controlView] window] windowController];
+//	CGFloat threadColumnWidth = ([wc isKindOfClass:[LoggerWindowController class]]) ? wc.threadColumnWidth : DEFAULT_THREAD_COLUMN_WIDTH;
+    
+    MMLoggerWindowController *wc = [[[self controlView] window] windowController];
+	CGFloat threadColumnWidth = ([wc isKindOfClass:[MMLoggerWindowController class]]) ? wc.threadColumnWidth : DEFAULT_THREAD_COLUMN_WIDTH;
+    
+    
 	CGContextMoveToPoint(ctx, floorf(NSMinX(cellFrame) + TIMESTAMP_COLUMN_WIDTH + threadColumnWidth), NSMinY(cellFrame));
 	CGContextAddLineToPoint(ctx, floorf(NSMinX(cellFrame) + TIMESTAMP_COLUMN_WIDTH + threadColumnWidth), floorf(NSMaxY(cellFrame)-1));
 	CGContextStrokePath(ctx);
@@ -1032,10 +1043,15 @@ NSString * const kMessageColumnWidthsChangedNotification = @"MessageColumnWidths
     // BEWARE This works since the cell origin.x is the same as the controlView (the tableview) origin.x. The startPoint is in the control view coordinates, so this is a special case.
     // converting the startPoint in the cell coordinates is not that easy!
 
-    LoggerWindowController *wc = [[[self controlView] window] windowController];
-	if (![wc isKindOfClass:[LoggerWindowController class]])
+//    LoggerWindowController *wc = [[[self controlView] window] windowController];
+//	if (![wc isKindOfClass:[LoggerWindowController class]])
+//		return NO;		// we may be in the Preferences window fake log message display
+
+    MMLoggerWindowController *wc = [[[self controlView] window] windowController];
+	if (![wc isKindOfClass:[MMLoggerWindowController class]])
 		return NO;		// we may be in the Preferences window fake log message display
 
+    
     CGFloat threadColumnWidth = wc.threadColumnWidth;
     if(mouseDownPoint.x >= (0. + TIMESTAMP_COLUMN_WIDTH + threadColumnWidth - 5.) && mouseDownPoint.x <= (0. + TIMESTAMP_COLUMN_WIDTH + threadColumnWidth + 5.))
         return YES;
@@ -1063,7 +1079,9 @@ NSString * const kMessageColumnWidthsChangedNotification = @"MessageColumnWidths
 {
     if(self.modifyingThreadColumnWidth == YES)
     {
-        LoggerWindowController *wc = [[[self controlView] window] windowController];
+//        LoggerWindowController *wc = [[[self controlView] window] windowController];
+        MMLoggerWindowController *wc = [[[self controlView] window] windowController];
+
         CGFloat threadColumnWidth = wc.threadColumnWidth;
 
         CGFloat currentColWidth = threadColumnWidth;

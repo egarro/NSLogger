@@ -74,6 +74,8 @@ static NSArray *sXcodeFileExtensions = nil;
 // -----------------------------------------------------------------------------
 - (id)initWithWindowNibName:(NSString *)nibName
 {
+    NSLog(@"initWithWindowNibName");
+    
 	if ((self = [super initWithWindowNibName:nibName]) != nil)
 	{
 		messageFilteringQueue = dispatch_queue_create("com.florentpillet.nslogger.messageFiltering", NULL);
@@ -87,6 +89,7 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (void)dealloc
 {
+    NSLog(@"dealloc");
 	[detailsWindowController release];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[filterSetsListController removeObserver:self forKeyPath:@"arrangedObjects"];
@@ -106,8 +109,8 @@ static NSArray *sXcodeFileExtensions = nil;
 	if (lastTilingGroup)
 		dispatch_release(lastTilingGroup);
 
-    logTable.delegate = nil;
-    logTable.dataSource = nil;
+//    logTable.delegate = nil;
+//    logTable.dataSource = nil;
 	filterSetsTable.delegate = nil;
     filterSetsTable.dataSource = nil;
 	filterTable.delegate = nil;
@@ -118,11 +121,13 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (NSUndoManager *)undoManager
 {
-	return [[self document] undoManager];
+	NSLog(@"undoManager");
+    return [[self document] undoManager];
 }
 
 - (void)windowDidLoad
 {
+    NSLog(@"windowDidLoad");
     if (sXcodeFileExtensions == nil) {
         sXcodeFileExtensions = [[NSArray alloc] initWithObjects:
                                 @"m", @"mm", @"h", @"c", @"cp", @"cpp", @"hpp",
@@ -175,6 +180,9 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (NSString *)windowTitleForDocumentDisplayName:(NSString *)displayName
 {
+    
+    NSLog(@"windowTitleForDocumentDisplayName:");
+    
 	if ([[self document] fileURL] != nil)
 		return displayName;
 	if (attachedConnection.connected)
@@ -185,6 +193,7 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (void)updateClientInfo
 {
+    NSLog(@"updateClientInfo");
 	// Update the source label
 	assert([NSThread isMainThread]);
 	[self synchronizeWindowTitleWithDocumentName];
@@ -192,6 +201,7 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (void)updateMenuBar:(BOOL)documentIsFront
 {
+    NSLog(@"updateMenuBar:");
 	if (documentIsFront)
 	{
 		[self rebuildMarksSubmenu];
@@ -209,6 +219,8 @@ static NSArray *sXcodeFileExtensions = nil;
 				 forceUpdate:(BOOL)forceUpdate
 					   group:(dispatch_group_t)group
 {
+    NSLog(@"tileLogTableMessages:withSize:forceUpdate:group:");
+    
 	NSMutableArray *updatedMessages = [[NSMutableArray alloc] initWithCapacity:[messages count]];
 	for (LoggerMessage *msg in messages)
 	{
@@ -269,6 +281,7 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (void)tileLogTable:(BOOL)forceUpdate
 {
+    NSLog(@"tileLogTable:");
 	// tile the visible rows (and a bit more) first, then tile all the rest
 	// this gives us a better perceived speed
 	NSSize tableSize = [logTable frame].size;
@@ -319,11 +332,13 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (void)tileLogTableNotification:(NSNotification *)note
 {
+    NSLog(@"tileLogTableNotification:");
 	[self tileLogTable:NO];
 }
 
 - (void)applyFontChanges
 {
+    NSLog(@"applyFontChanges");
 	[self tileLogTable:YES];
 	[logTable reloadData];
 }
@@ -334,6 +349,8 @@ static NSArray *sXcodeFileExtensions = nil;
 // -----------------------------------------------------------------------------
 - (void)rebuildRunsSubmenu
 {
+    NSLog(@"rebuildRunsSubmenu");
+    
 	LoggerDocument *doc = (LoggerDocument *)self.document;
 	NSMenuItem *runsSubmenu = [[[[NSApp mainMenu] itemWithTag:VIEW_MENU_ITEM_TAG] submenu] itemWithTag:VIEW_MENU_SWITCH_TO_RUN_TAG];
 	NSArray *runsNames = [doc attachedLogsPopupNames];
@@ -357,6 +374,8 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (void)clearRunsSubmenu
 {
+    NSLog(@"clearRunsSubmenu");
+    
 	NSMenuItem *runsSubmenu = [[[[NSApp mainMenu] itemWithTag:VIEW_MENU_ITEM_TAG] submenu] itemWithTag:VIEW_MENU_SWITCH_TO_RUN_TAG];
 	NSMenu *menu = [runsSubmenu submenu];
 	[menu removeAllItems];
@@ -368,6 +387,7 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (void)selectRun:(NSMenuItem *)anItem
 {
+    NSLog(@"selectRun:");
 	((LoggerDocument *)self.document).indexOfCurrentVisibleLog = [NSNumber numberWithInteger:[anItem tag]];
 }
 
@@ -377,6 +397,7 @@ static NSArray *sXcodeFileExtensions = nil;
 // -----------------------------------------------------------------------------
 - (NSPredicate *)filterPredicateFromCurrentSelection
 {
+    NSLog(@"filterPredicateFromCurrentSelection");
 	// the current filter is the aggregate (OR clause) of all the selected filters
 	NSArray *predicates = [[filterListController selectedObjects] valueForKey:@"predicate"];
 	if (![predicates count])
@@ -410,6 +431,7 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (NSPredicate *)alwaysVisibleEntriesPredicate
 {
+    NSLog(@"alwaysVisibleEntriesPredicate");
 	NSExpression *lhs = [NSExpression expressionForKeyPath:@"type"];
 	NSExpression *rhs = [NSExpression expressionForConstantValue:[NSSet setWithObjects:
 																  [NSNumber numberWithInteger:LOGMSG_TYPE_MARK],
@@ -425,6 +447,8 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (void)updateFilterPredicate
 {
+    NSLog(@"updateFilterPredicate");
+    
 	assert([NSThread isMainThread]);
 	NSPredicate *p = [self filterPredicateFromCurrentSelection];
 	NSMutableArray *andPredicates = [[NSMutableArray alloc] initWithCapacity:3];
@@ -450,6 +474,8 @@ static NSArray *sXcodeFileExtensions = nil;
 	}
 	if ([filterString length])
 	{
+        NSLog(@"FILTER STRING: %@",filterString);
+        
 		// "refine filter" string looks up in both message text and function name
 		NSExpression *lhs = [NSExpression expressionForKeyPath:@"messageText"];
 		NSExpression *rhs = [NSExpression expressionForConstantValue:filterString];
@@ -485,6 +511,7 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (void)refreshMessagesIfPredicateChanged
 {
+    NSLog(@"refreshMessagesIfPredicateChanged");
 	assert([NSThread isMainThread]);
 	NSPredicate *currentPredicate = [[filterPredicate retain] autorelease];
 	[self updateFilterPredicate];
@@ -502,6 +529,7 @@ static NSArray *sXcodeFileExtensions = nil;
 // -----------------------------------------------------------------------------
 - (NSDictionary *)settingsForClientApplication
 {
+    NSLog(@"settingsForClientApplication");
 	NSString *clientAppIdentifier = [attachedConnection clientName];
 	if (![clientAppIdentifier length])
 		return nil;
@@ -518,6 +546,7 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (void)saveSettingsForClientApplication:(NSDictionary *)newSettings
 {
+    NSLog(@"saveSettingsForClientApplication:");
 	NSString *clientAppIdentifier = [attachedConnection clientName];
 	if (![clientAppIdentifier length])
 		return;
@@ -531,6 +560,7 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (void)setSettingForClientApplication:(id)aValue forKey:(NSString *)aKey
 {
+    NSLog(@"setSettingForClientApplication:forKey:");
 	NSMutableDictionary *dict = [[self settingsForClientApplication] mutableCopy];
 	[dict setObject:aValue forKey:aKey];
 	[self saveSettingsForClientApplication:dict];
@@ -539,6 +569,7 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (void)rememberFiltersSelection
 {
+    NSLog(@"rememberFiltersSelection");
 	// remember the last filter set selected for this application identifier,
 	// we will use it to automatically reassociate it the next time the same
 	// application connects or a log file from this application is reopened
@@ -549,6 +580,8 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (void)restoreClientApplicationSettings
 {
+    NSLog(@"restoreClientApplicationSettings");
+    
 	NSDictionary *clientAppSettings = [self settingsForClientApplication];
 	if (clientAppSettings == nil)
 		return;
@@ -650,6 +683,8 @@ static NSArray *sXcodeFileExtensions = nil;
 // -----------------------------------------------------------------------------
 - (void)rebuildQuickFilterPopup
 {
+    NSLog(@"rebuildQuickFilterPopup");
+    
 	NSMenu *menu = [quickFilter menu];
 	
 	// remove all tags
@@ -698,11 +733,17 @@ static NSArray *sXcodeFileExtensions = nil;
 	[quickFilter setTitle:[NSString stringWithFormat:@"%@ | %@", levelTitle, tagTitle]];
 	
 	self.hasQuickFilter = (filterString != nil || filterTag != nil || logLevel != 0);
+    
+    NSLog(@"FILTER STRING: %@",filterString);
 }
 
 - (void)addTags:(NSArray *)newTags
 {
+    NSLog(@"addTags");
 	// complete the set of "seen" tags in messages
+
+
+
 	// if changed, update the quick filter popup
 	NSUInteger numTags = [tags count];
 	[tags addObjectsFromArray:newTags];
@@ -712,6 +753,8 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (IBAction)selectQuickFilterTag:(id)sender
 {
+    NSLog(@"selectQuickFilterTag:");
+    
 	if (filterTag != [sender representedObject])
 	{
 		self.filterTag = [sender representedObject];
@@ -722,7 +765,10 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (IBAction)selectQuickFilterLevel:(id)sender
 {
-	int level = [(NSView *)sender tag];
+    
+    NSLog(@"selectQuickFilterLevel:");
+	
+    int level = [(NSView *)sender tag];
 	if (level != logLevel)
 	{
 		logLevel = level;
@@ -733,6 +779,9 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (IBAction)resetQuickFilter:(id)sender
 {
+      NSLog(@"resetQuickFilter:");
+    
+    selectQuickFilterLevel:
 	[filterString release];
 	filterString = @"";
 	[filterTag release];
@@ -748,6 +797,7 @@ static NSArray *sXcodeFileExtensions = nil;
 // -----------------------------------------------------------------------------
 - (void)messagesAppendedToTable
 {
+    NSLog(@"messagesAppendedToTable");
 	assert([NSThread isMainThread]);
 	if (attachedConnection.connected)
 	{
@@ -770,6 +820,7 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (void)appendMessagesToTable:(NSArray *)messages
 {
+    NSLog(@"appendMessagesToTable:");
 	assert([NSThread isMainThread]);
 	[displayedMessages addObjectsFromArray:messages];
 
@@ -860,6 +911,7 @@ static NSArray *sXcodeFileExtensions = nil;
 // -----------------------------------------------------------------------------
 - (void)refreshAllMessages:(NSArray *)selectedMessages
 {
+    NSLog(@"refreshAllMessages:");
 	assert([NSThread isMainThread]);
 	@synchronized (attachedConnection.messages)
 	{
@@ -987,6 +1039,7 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (void)filterIncomingMessages:(NSArray *)messages
 {
+    NSLog(@"FILTER Incoming Messages:");
 	assert([NSThread isMainThread]);
 	NSPredicate *aFilter = filterPredicate;		// catch value now rather than dereference it from self later
 	NSSize tableFrameSize = [logTable frame].size;
@@ -999,6 +1052,9 @@ static NSArray *sXcodeFileExtensions = nil;
 					withFilter:(NSPredicate *)aFilter
 				tableFrameSize:(NSSize)tableFrameSize
 {
+
+    NSLog(@"filterIncomingMessages: %@ withFilter: %@ tableFrameSize: %f,%f", messages,aFilter,tableFrameSize.width,tableFrameSize.height);
+    
 	// collect all tags
 	NSArray *msgTags = [messages valueForKeyPath:@"@distinctUnionOfObjects.tag"];
 
@@ -1024,6 +1080,8 @@ static NSArray *sXcodeFileExtensions = nil;
 // -----------------------------------------------------------------------------
 - (void)setAttachedConnection:(LoggerConnection *)aConnection
 {
+    NSLog(@"setAttachedConnection:");
+    
 	assert([NSThread isMainThread]);
 
 	if (attachedConnection != nil)
@@ -1092,6 +1150,8 @@ static NSArray *sXcodeFileExtensions = nil;
 		[self performSelector:@selector(refreshMessagesIfPredicateChanged) withObject:nil afterDelay:0];
 		self.hasQuickFilter = (filterString != nil || filterTag != nil || logLevel != 0);
 	}
+    
+    NSLog(@"FILTER STRING: %@",filterString);
 }
 
 - (void)setShowFunctionNames:(NSNumber *)value
@@ -1126,6 +1186,7 @@ static NSArray *sXcodeFileExtensions = nil;
 didReceiveMessages:(NSArray *)theMessages
 			 range:(NSRange)rangeInMessagesList
 {
+    NSLog(@"connection:didReceiveMessages:");
 	// We need to hop thru the main thread to have a recent and stable copy of the filter string and current filter
 	dispatch_async(dispatch_get_main_queue(), ^{
 		if (initialRefreshDone)
@@ -1145,6 +1206,7 @@ didReceiveMessages:(NSArray *)theMessages
 // -----------------------------------------------------------------------------
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
 {
+    NSLog(@"observeValueForKeyPath:ofObject:%@",object);
 	if (object == attachedConnection)
 	{
 		if ([keyPath isEqualToString:@"clientIDReceived"])
@@ -1357,6 +1419,8 @@ didReceiveMessages:(NSArray *)theMessages
 			  row:(NSInteger)row
 	dropOperation:(NSTableViewDropOperation)operation
 {
+    NSLog(@"tableView:acceptDrop:row:dropOperation:");
+    
 	BOOL added = NO;
 	NSPasteboard* pboard = [dragInfo draggingPasteboard];
 	NSArray *newFilters = [NSKeyedUnarchiver unarchiveObjectWithData:[pboard dataForType:kNSLoggerFilterPasteboardType]];
@@ -1432,6 +1496,8 @@ didReceiveMessages:(NSArray *)theMessages
 
 - (IBAction)addFilterSet:(id)sender
 {
+    NSLog(@"addFilterSet:");
+    
 	id dict = [NSMutableDictionary dictionaryWithObjectsAndKeys:
 			   [(LoggerAppDelegate *)[NSApp delegate] nextUniqueFilterIdentifier:[filterSetsListController arrangedObjects]], @"uid",
 			   NSLocalizedString(@"New App. Set", @""), @"title",
@@ -1450,7 +1516,8 @@ didReceiveMessages:(NSArray *)theMessages
 #pragma mark Filter editor
 // -----------------------------------------------------------------------------
 - (void)undoableModifyFilter:(NSDictionary *)filter
-{
+{    NSLog(@"undoableModifyFilter:");
+    
 	NSMutableDictionary *previousFilter = nil;
 	for (NSMutableDictionary *dict in [filterListController content])
 	{
@@ -1469,6 +1536,8 @@ didReceiveMessages:(NSArray *)theMessages
 
 - (void)undoableCreateFilter:(NSDictionary *)filter
 {
+    NSLog(@"undoableCreateFilter:");
+    
 	NSUndoManager *um = [self undoManager];
 	[um registerUndoWithTarget:self selector:_cmd object:filter];
 	[um setActionName:NSLocalizedString(@"Create Filter", @"")];
@@ -1482,7 +1551,8 @@ didReceiveMessages:(NSArray *)theMessages
 }
 
 - (void)undoableDeleteFilters:(NSArray *)filters
-{
+{   NSLog(@"undoableDeleteFilters:");
+    
 	NSUndoManager *um = [self undoManager];
 	[um registerUndoWithTarget:self selector:_cmd object:filters];
 	[um setActionName:NSLocalizedString(@"Delete Filters", @"")];
@@ -1497,6 +1567,8 @@ didReceiveMessages:(NSArray *)theMessages
 
 - (void)openFilterEditSheet:(NSDictionary *)dict
 {
+    NSLog(@"openFilterEditSheet:");
+    
 	[filterName setStringValue:[dict objectForKey:@"title"]];
 	NSPredicate *predicate = [dict objectForKey:@"predicate"];
 	[filterEditor setObjectValue:[[predicate copy] autorelease]];
@@ -1510,6 +1582,7 @@ didReceiveMessages:(NSArray *)theMessages
 
 - (void)filterEditSheetDidEnd:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo
 {
+    NSLog(@"filterEditSheetDidEnd:returnCode:contextInfo:");
 	if (returnCode)
 	{
 		NSMutableDictionary *dict = [[(NSDictionary *)contextInfo mutableCopy] autorelease];
@@ -1539,11 +1612,14 @@ didReceiveMessages:(NSArray *)theMessages
 
 - (IBAction)deleteSelectedFilters:(id)sender
 {
+    NSLog(@"deleteSelectedFilters:");
 	[self undoableDeleteFilters:[filterListController selectedObjects]];
 }
 
 - (IBAction)addFilter:(id)sender
 {
+    NSLog(@"addFilter:");
+    
 	NSDictionary *filterSet = [[filterSetsListController selectedObjects] lastObject];
 	assert(filterSet != nil);
 	NSDictionary *dict = [NSMutableDictionary dictionaryWithObjectsAndKeys:
@@ -1557,6 +1633,7 @@ didReceiveMessages:(NSArray *)theMessages
 
 - (IBAction)startEditingFilter:(id)sender
 {
+    NSLog(@"StartEditingFilter");
 	// start editing filter, unless no selection (happens when double-clicking the header)
 	// or when trying to edit the "All Logs" entry which is immutable
 	NSDictionary *dict = [[filterListController selectedObjects] lastObject];
@@ -1579,6 +1656,8 @@ didReceiveMessages:(NSArray *)theMessages
 
 - (IBAction)createNewFilterFromQuickFilter:(id) sender
 {
+    NSLog(@"createNewFilterFromQuickFilter:");
+    
 	NSDictionary *filterSet = [[filterSetsListController selectedObjects] lastObject];
 	assert(filterSet != nil);
 	
@@ -1589,6 +1668,8 @@ didReceiveMessages:(NSArray *)theMessages
 	{
 		[predicates addObject:[NSPredicate predicateWithFormat:@"messageText contains %@", filterString]];
 		newFilterTitle = [NSString stringWithFormat:NSLocalizedString(@"Quick Filter: %@", @""), filterString];
+        
+        NSLog(@"FILTER STRING: %@",filterString);
 	}
 	else
 		newFilterTitle = NSLocalizedString(@"Quick Filter", @"");
@@ -1803,6 +1884,8 @@ didReceiveMessages:(NSArray *)theMessages
 // -----------------------------------------------------------------------------
 - (BOOL)validateUserInterfaceItem:(id)anItem
 {
+    
+    NSLog(@"validateUserInterfaceItem:");
 	SEL action = [anItem action];
 	if (action == @selector(deleteMark:))
 	{

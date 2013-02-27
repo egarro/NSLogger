@@ -87,7 +87,7 @@
 			LoggerSetViewerHost(NULL, (__bridge CFStringRef)host, (UInt32)port);
 		else
 			LoggerSetViewerHost(NULL, NULL, 0);
-
+        
 		LoggerSetOptions(NULL,						// configure the default logger
 						 kLoggerOption_BufferLogsUntilConnection |
 						 kLoggerOption_UseSSL |
@@ -210,6 +210,25 @@
 	}
 	messagesSentLabel.text = [NSString stringWithFormat:@"%d", counter];
 	imagesSentLabel.text = [NSString stringWithFormat:@"%d", imagesCounter];
+    
+    //REMOVE THIS LINES: ESTEBAN MM_ADDITION_POINT
+    
+
+    
+}
+
+-(void)stopThisLogger {
+    [self startStopSendingMessages];
+    LoggerStop(LoggerGetDefaultLogger());
+    [self performSelector:@selector(startStopSendingMessages
+                                    ) withObject:nil afterDelay:0.1];
+}
+
+-(void)startNewLogger {
+
+    
+    LoggerStart(LoggerInit());
+    [self performSelector:@selector(startStopSendingMessages) withObject:nil afterDelay:0.1];
 }
 
 - (void)sendLogFromAnotherThread:(NSNumber *)counterNum

@@ -32,6 +32,7 @@
 #import "LoggerAppDelegate.h"
 #import "LoggerNativeTransport.h"
 #import "LoggerWindowController.h"
+#import "MMLoggerWindowController.h"
 #import "LoggerDocument.h"
 #import "LoggerDocumentController.h"
 #import "LoggerStatusWindowController.h"
@@ -71,7 +72,7 @@ NSString * const kPref_ApplicationFilterSet = @"appFilterSet";
 						 [NSNumber numberWithBool:NO], kPrefHasDirectTCPIPResponder,
 						 [NSNumber numberWithInteger:50000], kPrefDirectTCPIPResponderPort,
                          [NSNumber numberWithBool:YES], kPrefUseConnectionManager,
-                         @"/Users/gamest/Desktop/logs", kPrefLogPath,
+                         @"/Users/egarro/Desktop/iPadLogs", kPrefLogPath,
                          [NSNumber numberWithInteger:600], kPrefIdleDefTime,
                          [NSNumber numberWithInteger:50], kPrefMaxLogSize,
 						 @"", kPrefBonjourServiceName,
@@ -320,9 +321,11 @@ NSString * const kPref_ApplicationFilterSet = @"appFilterSet";
     //MM ADDITION POINT:
     //Check whether we should add an entry to the Connection Manager or display a window.
     if (![[NSUserDefaults standardUserDefaults] boolForKey:kPrefUseConnectionManager]) {
+        //[doc makeWindowControllers];
         [doc showWindows];
     }
     else {
+         //No window is created just yet!
          [doc hideMainWindow];
     }
     

@@ -214,7 +214,8 @@
     if (selectedRow < [documents count]) {
             //Here we have to forward the click to the open the proper document!
      [(NSTableView *)sender selectRowIndexes:[NSIndexSet indexSetWithIndex:selectedRow] byExtendingSelection:NO];
-        [(LoggerDocument *)[documents objectAtIndex:selectedRow] showMainWindow];
+        //[(LoggerDocument *)[documents objectAtIndex:selectedRow] makeWindowControllers];
+            [(LoggerDocument *)[documents objectAtIndex:selectedRow] showMainWindow];
         
             //Deselect the cell:
             [self performSelector:@selector(deselectTableRow:) withObject:[NSNumber numberWithInteger:selectedRow] afterDelay:0.2];

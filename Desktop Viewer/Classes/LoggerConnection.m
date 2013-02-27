@@ -95,6 +95,13 @@ char sConnectionAssociatedObjectKey = 1;
 {
 	// Try to detect if a connection is a new run of an older, disconnected session
 	// (goal is to detect restarts, so as to replace logs in the same window)
+    
+    
+    //ESTEBAN: REMOVE THIS LINE! MM_ADDITION-POINT
+    return NO;
+    
+    
+    
 	assert(restoredFromSave == NO);
 
 	// exclude files loaded from disk

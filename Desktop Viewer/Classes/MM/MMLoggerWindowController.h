@@ -1,5 +1,5 @@
 /*
- * LoggerDocument.h
+ * MMLoggerWindowController.h
  *
  * BSD license follows (http://www.opensource.org/licenses/bsd-license.php)
  * 
@@ -29,51 +29,60 @@
  * 
  */
 #import "LoggerConnection.h"
+#import "BWToolkitFramework.h"
 
-@class LoggerWindowController;
-@class MMLoggerWindowController;
+@class LoggerMessageCell, LoggerClientInfoCell, LoggerMarkerCell, LoggerTableView, LoggerSplitView;
+@class LoggerDetailsWindowController;
 
-@interface LoggerDocument : NSDocument <LoggerConnectionDelegate>
+@interface MMLoggerWindowController : NSWindowController <NSWindowDelegate, LoggerConnectionDelegate, NSTableViewDataSource, NSTableViewDelegate>
 {
-	NSMutableArray *attachedLogs;
-	LoggerConnection *currentConnection;			// the connection currently visible in the main window
+	IBOutlet LoggerTableView *logTable;
+    IBOutlet LoggerSplitView *splitView;
 
-    //MM ADDITION POINT
-    
-    NSUInteger tag;
-    NSUInteger messageCounter;
-    NSUInteger idleDefinitionTime;
-    NSUInteger maximumMessagesPerLog;
-    
-    BOOL active;
-    BOOL disconnected;
-    BOOL idle;
-    
-    NSTimer *idleTimer;
-    
+	LoggerConnection *attachedConnection;
+	LoggerDetailsWindowController *detailsWindowController;
+
+	LoggerMessageCell *messageCell;
+	LoggerClientInfoCell *clientInfoCell;
+	LoggerMarkerCell *markerCell;
+    CGFloat threadColumnWidth;
+
+	NSString *info;
+	NSMutableArray *displayedMessages;
+	NSMutableSet *tags;
+
+	int logLevel;
+
+	dispatch_queue_t messageFilteringQueue;
+	dispatch_group_t lastTilingGroup;
+
+	int lastMessageRow;
+	BOOL messagesSelected;
+	BOOL hasQuickFilter;
+	BOOL initialRefreshDone;
+	BOOL showFunctionNames;
+	BOOL clientAppSettingsRestored;
 }
 
-@property (nonatomic, readwrite) NSUInteger tag;
-@property (nonatomic, readonly) NSArray *attachedLogs;
-@property (nonatomic, retain) NSNumber *indexOfCurrentVisibleLog;
-@property (nonatomic, assign) LoggerConnection *currentConnection;
-@property (nonatomic, assign) BOOL idle;
-@property (nonatomic, assign) BOOL active;
-@property (nonatomic, assign) BOOL disconnected;
-
-- (id)initWithConnection:(LoggerConnection *)aConnection;
-//- (LoggerWindowController *)mainWindowController;
-- (MMLoggerWindowController *)mainWindowController;
-- (NSArray *)attachedLogsPopupNames;
-- (void)addConnection:(LoggerConnection *)newConnection;
-- (void)clearLogs:(BOOL)includingPreviousRuns;
+@property (nonatomic, retain) LoggerConnection *attachedConnection;
+@property (nonatomic, assign) BOOL messagesSelected;
+@property (nonatomic, assign) CGFloat threadColumnWidth;
 
 
-//MM ADDITION POINT:
-- (void)assignConnectionToDocument;
-- (void)destroyMainWindow;
-- (void)hideMainWindow;
-- (void)showMainWindow;
-- (void)saveThisLog;
+- (IBAction)clearCurrentLog:(id)sender;
+- (IBAction)clearAllLogs:(id)sender;
+
+- (IBAction)collapseTaskbar:(id)sender;
+
+- (void)updateMenuBar:(BOOL)documentIsFront;
 
 @end
+
+@interface LoggerTableView : NSTableView
+{
+}
+@end
+
+#define	DEFAULT_THREAD_COLUMN_WIDTH	85.0f
+
+
