@@ -30,7 +30,6 @@
  */
 #import <sys/time.h>
 #import "MMLoggerWindowController.h"
-#import "LoggerDetailsWindowController.h"
 #import "LoggerMessageCell.h"
 #import "LoggerClientInfoCell.h"
 #import "LoggerMarkerCell.h"
@@ -38,7 +37,6 @@
 #import "LoggerAppDelegate.h"
 #import "LoggerCommon.h"
 #import "LoggerDocument.h"
-#import "LoggerSplitView.h"
 
 @interface MMLoggerWindowController ()
 @property (nonatomic, retain) NSString *info;
@@ -57,9 +55,9 @@ static NSArray *sXcodeFileExtensions = nil;
 
 @implementation MMLoggerWindowController
 
+
 @synthesize info;
 @synthesize attachedConnection;
-@synthesize messagesSelected;
 @synthesize threadColumnWidth;
 
 // -----------------------------------------------------------------------------
@@ -72,7 +70,6 @@ static NSArray *sXcodeFileExtensions = nil;
 	{
 		messageFilteringQueue = dispatch_queue_create("com.florentpillet.nslogger.messageFiltering", NULL);
 		displayedMessages = [[NSMutableArray alloc] initWithCapacity:4096];
-		tags = [[NSMutableSet alloc] init];
 		[self setShouldCloseDocument:YES];
         threadColumnWidth = DEFAULT_THREAD_COLUMN_WIDTH;
 	}
@@ -81,13 +78,11 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (void)dealloc
 {
-	[detailsWindowController release];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	dispatch_release(messageFilteringQueue);
 	[attachedConnection release];
 	[info release];
 	[displayedMessages release];
-	[tags release];
 	[messageCell release];
 	[clientInfoCell release];
 	[markerCell release];
@@ -122,7 +117,6 @@ static NSArray *sXcodeFileExtensions = nil;
 
 	[logTable setIntercellSpacing:NSMakeSize(0,0)];
 	[logTable setTarget:self];
-	[logTable setDoubleAction:@selector(logCellDoubleClicked:)];
 
 	[logTable registerForDraggedTypes:[NSArray arrayWithObject:NSPasteboardTypeString]];
 	[logTable setDraggingSourceOperationMask:NSDragOperationNone forLocal:YES];
@@ -381,14 +375,6 @@ static NSArray *sXcodeFileExtensions = nil;
 
 
 
-// -----------------------------------------------------------------------------
-#pragma mark -
-#pragma mark Splitview delegate
-// -----------------------------------------------------------------------------
-- (void)splitViewDidResizeSubviews:(NSNotification *)notification
-{
-//	tableNeedsTiling = YES;
-}
 
 // -----------------------------------------------------------------------------
 #pragma mark -
@@ -486,56 +472,6 @@ static NSArray *sXcodeFileExtensions = nil;
                              arguments:args];
 }
 
-- (void)logCellDoubleClicked:(id)sender
-{
-	// Added in v1.1: alt-double click opens the source file if it was defined in the log
-	// and the file is found
-	NSEvent *event = [NSApp currentEvent];
-	if ([event clickCount] > 1 && ([NSEvent modifierFlags] & NSAlternateKeyMask) != 0)
-	{
-		NSInteger row = [logTable selectedRow];
-		if (row >= 0 && row < [displayedMessages count])
-		{
-			LoggerMessage *msg = [displayedMessages objectAtIndex:row];
-			NSString *filename = msg.filename;
-			if ([filename length])
-			{
-				NSFileManager *fm = [[NSFileManager alloc] init];
-				if ([fm fileExistsAtPath:filename])
-				{
-					// If the file is .h, .m, .c, .cpp, .h, .hpp: open the file
-					// using xed. Otherwise, open the file with the Finder. We really don't
-					// know which IDE the user is running if it's not Xcode
-					// (when logging from Android, could be IntelliJ or Eclipse)
-					NSString *extension = [filename pathExtension];
-					BOOL useXcode = NO;
-                    //if ([fm fileExistsAtPath:@"/usr/bin/xed"])
-                    //{
-                    for (NSString *ext in sXcodeFileExtensions)
-                    {
-                        if ([ext caseInsensitiveCompare:extension] == NSOrderedSame)
-                        {
-                            useXcode = YES;
-                            break;
-                        }
-                    }
-                    //}
-					if (useXcode)
-					{                        
-                        [self xedFile:filename 
-                                 line:[NSString stringWithFormat:@"%d", MAX(0, msg.lineNumber) + 1]];
-					}
-					else
-					{
-						[[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath:filename]];
-					}
-				}
-			}
-		}
-		return;
-	}
-	[self openDetailsWindow:sender];
-}
 
 // -----------------------------------------------------------------------------
 #pragma mark -
@@ -588,7 +524,7 @@ static NSArray *sXcodeFileExtensions = nil;
 			NSUInteger length = MIN(4096, numMessages - i);
 			if (length)
 			{
-				NSPredicate *aFilter = [self alwaysVisibleEntriesPredicate];
+				NSPredicate *aFilter = [NSPredicate predicateWithValue:YES];
 				NSArray *subArray = [attachedConnection.messages subarrayWithRange:NSMakeRange(i, length)];
 				dispatch_async(messageFilteringQueue, ^{
 					// Check that the connection didn't change
@@ -669,29 +605,10 @@ static NSArray *sXcodeFileExtensions = nil;
 	}
 }
 
-- (NSPredicate *)alwaysVisibleEntriesPredicate
-{
-    NSLog(@"alwaysVisibleEntriesPredicate");
-	NSExpression *lhs = [NSExpression expressionForKeyPath:@"type"];
-	NSExpression *rhs = [NSExpression expressionForConstantValue:[NSSet setWithObjects:
-																  [NSNumber numberWithInteger:LOGMSG_TYPE_MARK],
-																  [NSNumber numberWithInteger:LOGMSG_TYPE_CLIENTINFO],
-																  [NSNumber numberWithInteger:LOGMSG_TYPE_DISCONNECT],
-																  nil]];
-	NSPredicate *p = [NSComparisonPredicate predicateWithLeftExpression:lhs
-											  rightExpression:rhs
-													 modifier:NSDirectPredicateModifier
-														 type:NSInPredicateOperatorType
-													  options:0];
-    
-    NSPredicate *resp = [NSCompoundPredicate orPredicateWithSubpredicates:[NSArray arrayWithObjects:p, [NSPredicate predicateWithValue:YES], nil]];
-    
-    return resp;
-}
 
 - (void)filterIncomingMessages:(NSArray *)messages
 {
-    NSLog(@"FILTER Incoming Messages:");
+    //NSLog(@"FILTER Incoming Messages:");
     
     NSPredicate *filterPredicate = [NSPredicate predicateWithValue:YES];
     
@@ -708,11 +625,7 @@ static NSArray *sXcodeFileExtensions = nil;
 				tableFrameSize:(NSSize)tableFrameSize
 {
     
-    NSLog(@"filterIncomingMessages:withFilter:tableFrameSize:");
-    
-	// collect all tags
-	NSArray *msgTags = [messages valueForKeyPath:@"@distinctUnionOfObjects.tag"];
-    
+    //NSLog(@"filterIncomingMessages:withFilter:tableFrameSize:");
 	// find out which messages we want to keep. Executed on the message filtering queue
 	NSArray *filteredMessages = [messages filteredArrayUsingPredicate:aFilter];
 	if ([filteredMessages count])
@@ -723,7 +636,6 @@ static NSArray *sXcodeFileExtensions = nil;
 			if (attachedConnection == theConnection)
 			{
 				[self appendMessagesToTable:filteredMessages];
-				//[self addTags:msgTags];
 			}
 		});
 	}
@@ -916,15 +828,6 @@ didReceiveMessages:(NSArray *)theMessages
 	return [tableView rowHeight];
 }
 
-- (void)tableViewSelectionDidChange:(NSNotification *)aNotification
-{
-	if ([aNotification object] == logTable)
-	{
-		self.messagesSelected = ([logTable selectedRow] >= 0);
-		if (messagesSelected && detailsWindowController != nil && [[detailsWindowController window] isVisible])
-			[detailsWindowController setMessages:[displayedMessages objectsAtIndexes:[logTable selectedRowIndexes]]];
-	}
-}
 
 // -----------------------------------------------------------------------------
 #pragma mark -
@@ -1038,23 +941,6 @@ didReceiveMessages:(NSArray *)theMessages
 	[(LoggerDocument *)[self document] clearLogs:YES];
 }
 
-#pragma mark - 
-#pragma mark - Collapsing Taskbar
-
-- (IBAction)collapseTaskbar:(id)sender{
-    
-    NSMenuItem *hideShowButton = [[[[NSApp mainMenu] itemWithTag:VIEW_MENU_ITEM_TAG] submenu] itemWithTag:TOOLS_MENU_HIDE_SHOW_TOOLBAR];
-    
-    if (![splitView collapsibleSubviewCollapsed]) {
-        [hideShowButton setTitle:NSLocalizedString(@"Show Taskbar", @"Show Taskbar")];
-    }
-    else{
-        [hideShowButton setTitle:NSLocalizedString(@"Hide Taskbar", @"Hide Taskbar")];
-    }
-
-    [splitView toggleCollapse:nil];
-
-}
 
 @end
 

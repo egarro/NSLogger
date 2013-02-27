@@ -29,18 +29,13 @@
  * 
  */
 #import "LoggerConnection.h"
-#import "BWToolkitFramework.h"
 
-@class LoggerMessageCell, LoggerClientInfoCell, LoggerMarkerCell, LoggerTableView, LoggerSplitView;
-@class LoggerDetailsWindowController;
+@class LoggerMessageCell, LoggerClientInfoCell, LoggerMarkerCell, LoggerTableView;
 
 @interface MMLoggerWindowController : NSWindowController <NSWindowDelegate, LoggerConnectionDelegate, NSTableViewDataSource, NSTableViewDelegate>
 {
 	IBOutlet LoggerTableView *logTable;
-    IBOutlet LoggerSplitView *splitView;
-
 	LoggerConnection *attachedConnection;
-	LoggerDetailsWindowController *detailsWindowController;
 
 	LoggerMessageCell *messageCell;
 	LoggerClientInfoCell *clientInfoCell;
@@ -49,30 +44,22 @@
 
 	NSString *info;
 	NSMutableArray *displayedMessages;
-	NSMutableSet *tags;
-
-	int logLevel;
 
 	dispatch_queue_t messageFilteringQueue;
 	dispatch_group_t lastTilingGroup;
 
 	int lastMessageRow;
-	BOOL messagesSelected;
-	BOOL hasQuickFilter;
 	BOOL initialRefreshDone;
 	BOOL showFunctionNames;
 	BOOL clientAppSettingsRestored;
 }
 
 @property (nonatomic, retain) LoggerConnection *attachedConnection;
-@property (nonatomic, assign) BOOL messagesSelected;
 @property (nonatomic, assign) CGFloat threadColumnWidth;
 
 
 - (IBAction)clearCurrentLog:(id)sender;
 - (IBAction)clearAllLogs:(id)sender;
-
-- (IBAction)collapseTaskbar:(id)sender;
 
 - (void)updateMenuBar:(BOOL)documentIsFront;
 

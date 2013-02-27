@@ -467,7 +467,7 @@
 }
 
 -(void)makeIdle {
-    NSLog(@"Making Idle");
+    //NSLog(@"Making Idle");
     
     idleTimer = nil;
     
@@ -548,7 +548,7 @@ didReceiveMessages:(NSArray *)theMessages
 	if (wc.attachedConnection == theConnection)
 		[wc connection:theConnection didReceiveMessages:theMessages range:rangeInMessagesList];
     
-        NSLog(@"1 - Getting message %d",messageCounter);
+        //NSLog(@"1 - Getting message %d",messageCounter);
     
 	if (theConnection.connected)
 	{
@@ -561,7 +561,7 @@ didReceiveMessages:(NSArray *)theMessages
         self.disconnected = NO;
         
         messageCounter += 1;
-        NSLog(@"2 - Getting message %d",messageCounter);
+        //NSLog(@"2 - Getting message %d",messageCounter);
         
         if (messageCounter > maximumMessagesPerLog) {
             //Reset Counter;
