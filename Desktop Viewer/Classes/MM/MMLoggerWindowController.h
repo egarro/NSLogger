@@ -42,7 +42,6 @@
 	LoggerMarkerCell *markerCell;
     CGFloat threadColumnWidth;
 
-	NSString *info;
 	NSMutableArray *displayedMessages;
 
 	dispatch_queue_t messageFilteringQueue;
@@ -50,7 +49,6 @@
 
 	int lastMessageRow;
 	BOOL initialRefreshDone;
-	BOOL showFunctionNames;
 	BOOL clientAppSettingsRestored;
 }
 
@@ -61,7 +59,6 @@
 - (IBAction)clearCurrentLog:(id)sender;
 - (IBAction)clearAllLogs:(id)sender;
 
-- (void)updateMenuBar:(BOOL)documentIsFront;
 
 @end
 

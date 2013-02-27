@@ -39,14 +39,11 @@
 #import "LoggerDocument.h"
 
 @interface MMLoggerWindowController ()
-@property (nonatomic, retain) NSString *info;
 
 - (void)updateClientInfo;
 - (void)refreshAllMessages:(NSArray *)selectMessages;
 - (void)filterIncomingMessages:(NSArray *)messages withFilter:(NSPredicate *)aFilter tableFrameSize:(NSSize)tableFrameSize;
 - (void)tileLogTable:(BOOL)forceUpdate;
-- (void)rebuildRunsSubmenu;
-- (void)clearRunsSubmenu;
 
 @end
 
@@ -56,7 +53,7 @@ static NSArray *sXcodeFileExtensions = nil;
 @implementation MMLoggerWindowController
 
 
-@synthesize info;
+//@synthesize info;
 @synthesize attachedConnection;
 @synthesize threadColumnWidth;
 
@@ -81,7 +78,6 @@ static NSArray *sXcodeFileExtensions = nil;
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	dispatch_release(messageFilteringQueue);
 	[attachedConnection release];
-	[info release];
 	[displayedMessages release];
 	[messageCell release];
 	[clientInfoCell release];
@@ -136,6 +132,7 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (NSString *)windowTitleForDocumentDisplayName:(NSString *)displayName
 {
+    
 	if ([[self document] fileURL] != nil)
 		return displayName;
 	if (attachedConnection.connected)
@@ -151,24 +148,16 @@ static NSArray *sXcodeFileExtensions = nil;
 	[self synchronizeWindowTitleWithDocumentName];
 }
 
-- (void)updateMenuBar:(BOOL)documentIsFront
-{
-	if (documentIsFront)
-	{
-		[self rebuildRunsSubmenu];
-	}
-	else
-	{
-		[self clearRunsSubmenu];
-	}
-}
 
 - (void)tileLogTableMessages:(NSArray *)messages
 					withSize:(NSSize)tableSize
 				 forceUpdate:(BOOL)forceUpdate
 					   group:(dispatch_group_t)group
 {
-	NSMutableArray *updatedMessages = [[NSMutableArray alloc] initWithCapacity:[messages count]];
+	
+    //NSLog(@"tileLogTableMessages: %@ - withSize: %.1f x %.1f - forceUpdate: %@ - group: %@",messages,tableSize.width, tableSize.height, forceUpdate ? @"YES" : @"NO" , group);
+    
+    NSMutableArray *updatedMessages = [[NSMutableArray alloc] initWithCapacity:[messages count]];
 	for (LoggerMessage *msg in messages)
 	{
 		// detect cancellation
@@ -188,14 +177,14 @@ static NSArray *sXcodeFileExtensions = nil;
 				case LOGMSG_TYPE_LOG:
 				case LOGMSG_TYPE_BLOCKSTART:
 				case LOGMSG_TYPE_BLOCKEND:
-					newHeight = [LoggerMessageCell heightForCellWithMessage:msg threadColumnWidth:threadColumnWidth maxSize:tableSize showFunctionNames:showFunctionNames];
+					newHeight = [LoggerMessageCell heightForCellWithMessage:msg threadColumnWidth:threadColumnWidth maxSize:tableSize showFunctionNames:YES];
 					break;
 				case LOGMSG_TYPE_CLIENTINFO:
 				case LOGMSG_TYPE_DISCONNECT:
-					newHeight = [LoggerClientInfoCell heightForCellWithMessage:msg threadColumnWidth:threadColumnWidth maxSize:tableSize showFunctionNames:showFunctionNames];
+					newHeight = [LoggerClientInfoCell heightForCellWithMessage:msg threadColumnWidth:threadColumnWidth maxSize:tableSize showFunctionNames:YES];
 					break;
 				case LOGMSG_TYPE_MARK:
-					newHeight = [LoggerMarkerCell heightForCellWithMessage:msg threadColumnWidth:threadColumnWidth maxSize:tableSize showFunctionNames:showFunctionNames];
+					newHeight = [LoggerMarkerCell heightForCellWithMessage:msg threadColumnWidth:threadColumnWidth maxSize:tableSize showFunctionNames:YES];
 					break;
 			}
 			if (newHeight != cachedHeight)
@@ -228,6 +217,7 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (void)tileLogTable:(BOOL)forceUpdate
 {
+    NSLog(@"tileLogTable:");
 	// tile the visible rows (and a bit more) first, then tile all the rest
 	// this gives us a better perceived speed
 	NSSize tableSize = [logTable frame].size;
@@ -278,57 +268,17 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (void)tileLogTableNotification:(NSNotification *)note
 {
+    NSLog(@"tileLogTableNotification:");
 	[self tileLogTable:NO];
 }
 
 - (void)applyFontChanges
 {
+    NSLog(@"applyFontChanges");
 	[self tileLogTable:YES];
 	[logTable reloadData];
 }
 
-// -----------------------------------------------------------------------------
-#pragma mark -
-#pragma mark Support for multiple runs in same window
-// -----------------------------------------------------------------------------
-- (void)rebuildRunsSubmenu
-{
-	LoggerDocument *doc = (LoggerDocument *)self.document;
-	NSMenuItem *runsSubmenu = [[[[NSApp mainMenu] itemWithTag:VIEW_MENU_ITEM_TAG] submenu] itemWithTag:VIEW_MENU_SWITCH_TO_RUN_TAG];
-	NSArray *runsNames = [doc attachedLogsPopupNames];
-	NSMenu *menu = [runsSubmenu submenu];
-	[menu removeAllItems];
-	NSInteger i = 0;
-	NSInteger currentRun = [[doc indexOfCurrentVisibleLog] integerValue];
-	for (NSString *name in runsNames)
-	{
-		NSMenuItem *runItem = [[NSMenuItem alloc] initWithTitle:name
-														 action:@selector(selectRun:)
-												  keyEquivalent:@""];
-		if (i == currentRun)
-			[runItem setState:NSOnState];
-		[runItem setTag:i++];
-		[runItem setTarget:self];
-		[menu addItem:runItem];
-		[runItem release];
-	}
-}
-
-- (void)clearRunsSubmenu
-{
-	NSMenuItem *runsSubmenu = [[[[NSApp mainMenu] itemWithTag:VIEW_MENU_ITEM_TAG] submenu] itemWithTag:VIEW_MENU_SWITCH_TO_RUN_TAG];
-	NSMenu *menu = [runsSubmenu submenu];
-	[menu removeAllItems];
-	NSMenuItem *dummyItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"No Run Log", @"") action:nil keyEquivalent:@""];
-	[dummyItem setEnabled:NO];
-	[menu addItem:dummyItem];
-	[dummyItem release];
-}
-
-- (void)selectRun:(NSMenuItem *)anItem
-{
-	((LoggerDocument *)self.document).indexOfCurrentVisibleLog = [NSNumber numberWithInteger:[anItem tag]];
-}
 
 
 
@@ -391,17 +341,6 @@ static NSArray *sXcodeFileExtensions = nil;
 	[self tileLogTable:NO];
 }
 
-- (void)windowDidBecomeMain:(NSNotification *)notification
-{
-	[self updateMenuBar:YES];
-
-}
-
-- (void)windowDidResignMain:(NSNotification *)notification
-{
-	[self updateMenuBar:NO];
-
-}
 
 - (BOOL)windowShouldClose:(id)sender {
     
@@ -446,7 +385,6 @@ static NSArray *sXcodeFileExtensions = nil;
 		[logTable noteNumberOfRowsChanged];
 	}
 	lastMessageRow = [displayedMessages count];
-	self.info = [NSString stringWithFormat:NSLocalizedString(@"%u messages", @""), [displayedMessages count]];
 }
 
 - (void)appendMessagesToTable:(NSArray *)messages
@@ -517,7 +455,6 @@ static NSArray *sXcodeFileExtensions = nil;
 						lastMessageRow = 0;
 						[displayedMessages removeAllObjects];
 						[logTable reloadData];
-						self.info = NSLocalizedString(@"No message", @"");
 					});
 				});
 			}
@@ -656,13 +593,11 @@ static NSArray *sXcodeFileExtensions = nil;
 		[logTable deselectAll:self];
 		lastMessageRow = 0;
 		[displayedMessages removeAllObjects];
-		self.info = NSLocalizedString(@"No message", @"");
 		[logTable reloadData];
 
 
 		// Cancel pending tasks
 		[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(refreshAllMessages:) object:nil];
-		[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(refreshMessagesIfPredicateChanged) object:nil];
 		[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(messagesAppendedToTable) object:nil];
 		if (lastTilingGroup != NULL)
 		{
@@ -683,7 +618,6 @@ static NSArray *sXcodeFileExtensions = nil;
 		//dispatch_async(dispatch_get_main_queue(), ^{
 			initialRefreshDone = NO;
 			[self updateClientInfo];
-			[self rebuildRunsSubmenu];
 			[self refreshAllMessages:nil];
 		//});
 	}
@@ -698,28 +632,12 @@ static NSArray *sXcodeFileExtensions = nil;
 }
 
 
-- (void)setShowFunctionNames:(NSNumber *)value
-{
-	BOOL b = [value boolValue];
-	if (b != showFunctionNames)
-	{
-		[self willChangeValueForKey:@"showFunctionNames"];
-		showFunctionNames = b;
-		[self tileLogTable:YES];
-		dispatch_async(dispatch_get_main_queue(), ^{
-			[logTable reloadData];
-		});
-		[self didChangeValueForKey:@"showFunctionNames"];
-
-		dispatch_async(dispatch_get_main_queue(), ^{
-			[self setSettingForClientApplication:value forKey:@"showFunctionNames"];
-		});
-	}
-}
 
 - (NSNumber *)showFunctionNames
 {
-	return [NSNumber numberWithBool:showFunctionNames];
+	NSLog(@"showFunctionNames");
+
+	return [NSNumber numberWithBool:YES];
 }
 
 // -----------------------------------------------------------------------------
@@ -797,7 +715,7 @@ didReceiveMessages:(NSArray *)theMessages
 		// setup the message to be displayed
 		LoggerMessageCell *cell = (LoggerMessageCell *)aCell;
 		cell.message = [displayedMessages objectAtIndex:rowIndex];
-		cell.shouldShowFunctionNames = showFunctionNames;
+		cell.shouldShowFunctionNames = NO;
 
 		// if previous message is a Mark, go back a bit more to get the real previous message
 		// if previous message is ClientInfo, don't use it.
@@ -865,7 +783,6 @@ didReceiveMessages:(NSArray *)theMessages
 
 - (NSDragOperation)tableView:(NSTableView*)tv validateDrop:(id <NSDraggingInfo>)dragInfo proposedRow:(NSInteger)row proposedDropOperation:(NSTableViewDropOperation)op
 {
-	
 	return NSDragOperationNone;
 }
 
