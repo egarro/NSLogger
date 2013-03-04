@@ -30,7 +30,7 @@
  */
 #import "LoggerDocument.h"
 #import "LoggerWindowController.h"
-#import "MMLoggerWindowController.h"
+#import "MMLogSaverController.h"
 #import "LoggerTransport.h"
 #import "LoggerCommon.h"
 #import "LoggerConnection.h"
@@ -38,11 +38,12 @@
 #import "LoggerAppDelegate.h"
 
 
+
 @implementation LoggerDocument
 
-@synthesize attachedLogs;
-@synthesize tag, active, disconnected, idle;
+@synthesize attachedLogs, tag;
 @synthesize currentConnection;
+@synthesize status, saverController;
 
 @dynamic indexOfCurrentVisibleLog;
 
@@ -51,11 +52,34 @@
 	return YES;
 }
 
++(NSString *)stringForDocumentStatus:(DocumentStatus)aStatus {
+    NSString *p = @"Unknown";
+    
+    switch (aStatus) {
+        case (DocumentStatus)active:
+            p = @"Active";
+            break;
+        case (DocumentStatus)idle:
+            p = @"Idle";
+            break;
+        case (DocumentStatus)killed:
+            p = @"Killed";
+            break;
+        default:
+            p = @"Unknown";
+            break;
+    }
+    
+    return p;
+}
+
+
 - (id)init
 {
 	if ((self = [super init]) != nil)
 	{
 		attachedLogs = [[NSMutableArray alloc] init];
+        self.saverController = nil;
 	}
 	return self;
 }
@@ -66,7 +90,6 @@
 	{
 		attachedLogs = [[NSMutableArray alloc] init];
         
-        NSLog(@"Setting the connection delegate to this document");
 		aConnection.delegate = self;
 		[attachedLogs addObject:aConnection];
 		currentConnection = aConnection;
@@ -74,23 +97,22 @@
         idleDefinitionTime = [[[NSUserDefaults standardUserDefaults] objectForKey:@"idleDefinitionTime"] integerValue];
         maximumMessagesPerLog = [[[NSUserDefaults standardUserDefaults] objectForKey:@"maximumLogSize"] integerValue];
         idleTimer = nil;
+        self.saverController = nil;
 	}
 	return self;
 }
 
 - (void)close
 {
-	// since delegate is retained, we need to set it to nil
-	[attachedLogs makeObjectsPerformSelector:@selector(setDelegate:) withObject:nil];
-	[super close];
+    // since delegate is retained, we need to set it to nil
+	//[attachedLogs makeObjectsPerformSelector:@selector(setDelegate:) withObject:nil];
+	
+    [super close];
 }
 
 - (BOOL)isDocumentEdited {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:kPrefCloseWithoutSaving]) {
-        /* Don't bother asking, I don't want to save the logs 99% of the time. */
-        return NO;
-    }
-    return [super isDocumentEdited];
+    
+    return NO;
 }
 
 - (void)selectRun:(NSInteger)runIndex
@@ -116,12 +138,13 @@
 	return array;
 }
 
+
 - (void)addConnection:(LoggerConnection *)newConnection
 {
-    NSLog(@"addConnection setting delegate!");
+    NSLog(@"addConnection:");
 	newConnection.delegate = self;
 	[attachedLogs addObject:newConnection];
-
+    
 	dispatch_async(dispatch_get_main_queue(), ^{
 		// add the new connection to our list, potentially clearing previous ones
 		// if prefs say we shouldn't keep previous logs around
@@ -129,40 +152,22 @@
 		[self willChangeValueForKey:@"attachedLogsPopupNames"];
 		if (![[NSUserDefaults standardUserDefaults] boolForKey:kPrefKeepMultipleRuns])
 		{
+            NSLog(@"Removing previous connections!");
 			while ([attachedLogs count] > 1)
 				[attachedLogs removeObjectAtIndex:0];
 		}
 		[self didChangeValueForKey:@"attachedLogsPopupNames"];
 		currentConnection = newConnection;
-
+        
 		// switch the document's associated main window to show this new connection
-		self.indexOfCurrentVisibleLog = [NSNumber numberWithInteger:[attachedLogs indexOfObjectIdenticalTo:newConnection]];
+        
+        [self createSaverController];
+        [self attachConnectionToWindowController];
+        
 	});
 }
 
-- (void)clearLogs:(BOOL)includingPreviousRuns
-{
-	LoggerConnection *connection = [attachedLogs lastObject];
 
-	if (includingPreviousRuns)
-	{
-		// Remove all previous run logs
-		[self willChangeValueForKey:@"attachedLogsPopupNames"];
-		while ([attachedLogs count] > 1)
-			[attachedLogs removeObjectAtIndex:0];
-		connection.reconnectionCount = 0;
-		[self didChangeValueForKey:@"attachedLogsPopupNames"];
-	}
-
-	// Remove all entries from current run log
-	dispatch_async(connection.messageProcessingQueue, ^{
-		[connection clearMessages];
-		dispatch_async(dispatch_get_main_queue(), ^{
-			// this forces a full refresh of the view in a clean way
-			self.indexOfCurrentVisibleLog = self.indexOfCurrentVisibleLog;
-		});
-	});
-}
 
 - (NSNumber *)indexOfCurrentVisibleLog
 {
@@ -173,55 +178,44 @@
 	return [NSNumber numberWithInteger:idx];
 }
 
-- (void)setIndexOfCurrentVisibleLog:(NSNumber *)anIndex
-{
-	assert([NSThread isMainThread]);
 
-	// First, close all non-main window attached windows
-	NSMutableArray *windowsToClose = [NSMutableArray array];
-	//LoggerWindowController *mainWindow = nil;
-    MMLoggerWindowController *mainWindow = nil;
+
+- (void)attachConnectionToWindowController {
+
+	NSLog(@"attachConnectionToWindowController");
     
-	for (NSWindowController *wc in [self windowControllers])
+    assert([NSThread isMainThread]);
+    
+    for (NSWindowController *wc in [self windowControllers])
 	{
-//		if (![wc isKindOfClass:[LoggerWindowController class]])
-//			[windowsToClose addObject:wc];
-//		else
-//			mainWindow = (LoggerWindowController *)wc;
-		if (![wc isKindOfClass:[MMLoggerWindowController class]])
-			[windowsToClose addObject:wc];
-		else
-			mainWindow = (MMLoggerWindowController *)wc;
-        
+        if ([wc isKindOfClass:[LoggerWindowController class]]) {
+            NSLog(@"ATTACHING TO NORMAL");
+            ((LoggerWindowController *)wc).attachedConnection = currentConnection;
+            [wc showWindow:self];
+            
+        }
         
 	}
-	for (NSWindowController *wc in windowsToClose)
-		[wc close];
-	
-	// Changed the attached connection
-	[self willChangeValueForKey:@"indexOfCurrentVisibleLog"];
-	[self selectRun:[anIndex integerValue]];
-	mainWindow.attachedConnection = currentConnection;
-	[self didChangeValueForKey:@"indexOfCurrentVisibleLog"];
-	
-	// Bring window to front
-	[mainWindow showWindow:self];
+
     
-    //MM ADDITION POINT:
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:kPrefUseConnectionManager]) {
-        [mainWindow.window orderOut:nil];
-    }
 }
+
 
 - (void)dealloc
 {
+    NSLog(@"dealloc LoggerDocument");
+    
 	for (LoggerConnection *connection in attachedLogs)
 	{
 		// close the connection (if not already done) and make sure it is removed from transport
 		for (LoggerTransport *t in ((LoggerAppDelegate *)[NSApp	delegate]).transports)
 			[t removeConnection:connection];
 	}
-	[attachedLogs release];
+    
+    
+    [attachedLogs makeObjectsPerformSelector:@selector(setDelegate:) withObject:nil];
+	
+    [attachedLogs release];
 	[super dealloc];
 }
 
@@ -358,60 +352,79 @@
 	return ([attachedLogs count] != previousLogs);
 }
 
+
 - (void)makeWindowControllers
 {
-//	LoggerWindowController *controller = [[LoggerWindowController alloc] initWithWindowNibName:@"LoggerWindow"];
-    MMLoggerWindowController *controller = [[MMLoggerWindowController alloc] initWithWindowNibName:@"MMLoggerWindow"];
+    
+    NSLog(@"makeWindowControllers");
+    
+    for (id wc in [self windowControllers])
+	{
+		if ([wc isKindOfClass:[LoggerWindowController class]]) {
+            [self removeWindowController:wc];
+        }
+        
+	}
+    
+    LoggerWindowController *controller = [[LoggerWindowController alloc] initWithWindowNibName:@"LoggerWindow"];
     
 	[self addWindowController:controller];
 	[controller release];
-
+    
 	// force assignment of the current connection to the main window
-	self.indexOfCurrentVisibleLog = [NSNumber numberWithInteger:[attachedLogs indexOfObjectIdenticalTo:currentConnection]];
+    [self attachConnectionToWindowController];
 }
+
+- (void)createSaverController
+{
+    
+    if (self.saverController != nil) {
+        [self.saverController release];
+    }
+    
+    MMLogSaverController *controller = [[MMLogSaverController alloc] init];
+    controller.delegate = self;
+    controller.attachedConnection = currentConnection;
+    self.saverController = controller;
+    
+}
+
 
 /////////////////////////////MM ADDITION POINT:
 
-//- (void)assignConnectionToDocument {
-//    MMEmptyLoggerWindowController *controller = [[MMEmptyLoggerWindowController alloc] init];
-//	[self addWindowController:controller];
-//	[controller release];
-//    
-//	// force assignment of the current connection to the main window
-//	self.indexOfCurrentVisibleLog = [NSNumber numberWithInteger:[attachedLogs indexOfObjectIdenticalTo:currentConnection]];
-//}
 
 - (void)destroyMainWindow {
-//    for (LoggerWindowController *controller in self.windowControllers) {
-      for (MMLoggerWindowController *controller in self.windowControllers) {
-        [self removeWindowController:controller];
-    }
-}
-
-- (void)hideMainWindow {
     
     if ([self.windowControllers count] > 0) {
         
-    //LoggerWindowController *controller = [self.windowControllers objectAtIndex:0];
-    MMLoggerWindowController *controller = [self.windowControllers objectAtIndex:0];
-        
-        
-    [controller.window orderOut:nil];
+        for (id wc in [self windowControllers])
+        {
+            if ([wc isKindOfClass:[LoggerWindowController class]]) {
+                [self removeWindowController:wc];
+            }
+            
+        }
         
     }
+    
 }
 
 - (void)showMainWindow {
     
     if ([self.windowControllers count] > 0) {
 
-        //LoggerWindowController *controller = [self.windowControllers objectAtIndex:0];
-        MMLoggerWindowController *controller = [self.windowControllers objectAtIndex:0];
+        for (id wc in [self windowControllers])
+        {
+            if ([wc isKindOfClass:[LoggerWindowController class]]) {
+                [wc showWindow:nil];
+                [((LoggerWindowController *)wc).window makeKeyAndOrderFront:nil];
+                
+                break;
+            }
+            
+        }
 
-        [controller showWindow:nil];
-        [controller.window makeKeyAndOrderFront:nil]; // to actually show it
     }
-    
 }
 
 
@@ -447,42 +460,30 @@
 }
 
 -(void)saveDidFinish {
-
-    //Flush the log:
-    [self clearLogs:YES];
-    [self hideMainWindow];
-
+    NSLog(@"Save Did Finish");
+    
 }
 
 -(void)makeDisconnected {
+        
+    self.status = (DocumentStatus)killed;
     
-    if (idleTimer != nil && [idleTimer isValid]) {
-        [idleTimer invalidate];
-        idleTimer = nil;
-    }
-    
-    self.active = NO;
-    self.disconnected = YES;
-    self.idle = NO;
+    [(LoggerAppDelegate *)[NSApp delegate] reloadSubtable];
+
 }
 
 -(void)makeIdle {
-    //NSLog(@"Making Idle");
     
     idleTimer = nil;
     
-    self.active = NO;
-    self.disconnected = NO;
-    self.idle = YES;
+    self.status = (DocumentStatus)idle;
     
     [(LoggerAppDelegate *)[NSApp delegate] reloadSubtable];
 }
 
 -(void)makeActive {
-    self.active = YES;
-    self.disconnected = NO;
-    self.idle = NO;
-
+    self.status = (DocumentStatus)active;
+    
     [(LoggerAppDelegate *)[NSApp delegate] reloadSubtable];
 }
 
@@ -510,29 +511,18 @@
 
 
 
-//- (LoggerWindowController *)mainWindowController
-//{
-//	for (LoggerWindowController *controller in [self windowControllers])
-//	{
-//		if ([controller isKindOfClass:[LoggerWindowController class]])
-//			return controller;
-//	}
-//    
-//	assert(false);
-//	return nil;
-//}
-
-- (MMLoggerWindowController *)mainWindowController
+- (LoggerWindowController *)mainWindowController
 {
-	for (MMLoggerWindowController *controller in [self windowControllers])
+	for (LoggerWindowController *controller in [self windowControllers])
 	{
-		if ([controller isKindOfClass:[MMLoggerWindowController class]])
+		if ([controller isKindOfClass:[LoggerWindowController class]])
 			return controller;
 	}
+
     
-	assert(false);
 	return nil;
 }
+
 
 // -----------------------------------------------------------------------------
 #pragma mark -
@@ -542,26 +532,37 @@
 didReceiveMessages:(NSArray *)theMessages
 			 range:(NSRange)rangeInMessagesList
 {
-	//LoggerWindowController *wc = [self mainWindowController];
-	MMLoggerWindowController *wc = [self mainWindowController];
+
+    LoggerWindowController *wc = [self mainWindowController];
     
-	if (wc.attachedConnection == theConnection)
-		[wc connection:theConnection didReceiveMessages:theMessages range:rangeInMessagesList];
+    if (wc != nil) {
+        
+        NSLog(@"Forwarding Message to Visible Window");
+        if (wc.attachedConnection == theConnection)
+            [wc connection:theConnection didReceiveMessages:theMessages range:rangeInMessagesList];
+        
+    }
     
-        //NSLog(@"1 - Getting message %d",messageCounter);
+    
+    if (self.saverController != nil) {
+
+        NSLog(@"Forwarding Message to the Disk Writer");
+	if (self.saverController.attachedConnection == theConnection)
+		[self.saverController connection:theConnection didReceiveMessages:theMessages range:rangeInMessagesList];
+    
     
 	if (theConnection.connected)
 	{
-        if (self.idle || self.disconnected) {
+        if (self.status == (DocumentStatus)idle ||
+            self.status == (DocumentStatus)killed ) {
             [self makeActive];
         }
         
-        self.active = YES;
-        self.idle = NO;
-        self.disconnected = NO;
+        self.status = (DocumentStatus)active;
+
         
         messageCounter += 1;
-        //NSLog(@"2 - Getting message %d",messageCounter);
+        NSLog(@"2 - Getting message %d",messageCounter);
         
         if (messageCounter > maximumMessagesPerLog) {
             //Reset Counter;
@@ -590,22 +591,73 @@ didReceiveMessages:(NSArray *)theMessages
                                                         repeats:NO];
 		});
 	}
+        
+    }
+    
+  
+    
 }
 
 - (void)remoteDisconnected:(LoggerConnection *)theConnection
 {
     
-	//LoggerWindowController *wc = [self mainWindowController];
-	MMLoggerWindowController *wc = [self mainWindowController];
-	
-    if (wc.attachedConnection == theConnection)
-		[wc remoteDisconnected:theConnection];
+    if (idleTimer != nil && [idleTimer isValid]) {
+        [idleTimer invalidate];
+        idleTimer = nil;
+    }
+
     
-    //MM ADDITION POINT
-    //Perform Log save:
-    [self saveThisLog];
+    if (self.saverController != nil) {
+        
+        if (self.saverController.attachedConnection == theConnection)
+            [self.saverController remoteDisconnected:theConnection];
+    
+        [self saveThisLog];
+    }
+    
     [self makeDisconnected];
+    LoggerWindowController *wc = [self mainWindowController];
+	
+    if (wc != nil) {
+        
+        if (wc.attachedConnection == theConnection)
+            [wc remoteDisconnected:theConnection];
+        
+        
+    }
     
 }
+
+
+#pragma mark MMLogSaverDelegate methods 
+
+-(void)clearLogs {
+    NSLog(@"Clear Logs?");
+
+    LoggerConnection *connection = [attachedLogs lastObject];
+    
+
+		[self willChangeValueForKey:@"attachedLogsPopupNames"];
+		while ([attachedLogs count] > 1)
+			[attachedLogs removeObjectAtIndex:0];
+		connection.reconnectionCount = 0;
+		[self didChangeValueForKey:@"attachedLogsPopupNames"];
+    
+	// Remove all entries from current run log
+	dispatch_async(connection.messageProcessingQueue, ^{
+		[connection clearMessages];
+        //		dispatch_async(dispatch_get_main_queue(), ^{
+        //			// this forces a full refresh of the view in a clean way
+        //                    [self attachConnectionToWindowController];
+        //
+        //		});
+	});
+
+}
+
+-(void)updateClientInfo {
+    NSLog(@"Update Client Info?");
+}
+
 
 @end

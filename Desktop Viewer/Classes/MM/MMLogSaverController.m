@@ -1,5 +1,5 @@
 /*
- * MMLoggerWindowController.m
+ * MMLogSaverController.m
  *
  * BSD license follows (http://www.opensource.org/licenses/bsd-license.php)
  * 
@@ -29,18 +29,14 @@
  * 
  */
 #import <sys/time.h>
-#import "MMLoggerWindowController.h"
-#import "LoggerMessageCell.h"
-#import "LoggerClientInfoCell.h"
-#import "LoggerMarkerCell.h"
+#import "MMLogSaverController.h"
 #import "LoggerMessage.h"
 #import "LoggerAppDelegate.h"
 #import "LoggerCommon.h"
 #import "LoggerDocument.h"
 
-@interface MMLoggerWindowController ()
+@interface MMLogSaverController ()
 
-- (void)updateClientInfo;
 - (void)refreshAllMessages:(NSArray *)selectMessages;
 - (void)filterIncomingMessages:(NSArray *)messages withFilter:(NSPredicate *)aFilter tableFrameSize:(NSSize)tableFrameSize;
 - (void)tileLogTable:(BOOL)forceUpdate;
@@ -48,105 +44,49 @@
 @end
 
 static NSString * const kNSLoggerFilterPasteboardType = @"com.florentpillet.NSLoggerFilter";
-static NSArray *sXcodeFileExtensions = nil;
 
-@implementation MMLoggerWindowController
+@implementation MMLogSaverController
 
-
-//@synthesize info;
-@synthesize attachedConnection;
 @synthesize threadColumnWidth;
+@synthesize attachedConnection;
+@synthesize delegate;
+
 
 // -----------------------------------------------------------------------------
 #pragma mark -
 #pragma Standard NSWindowController stuff
 // -----------------------------------------------------------------------------
-- (id)initWithWindowNibName:(NSString *)nibName
+- (id)init
 {
-	if ((self = [super initWithWindowNibName:nibName]) != nil)
+	if ((self = [super init]) != nil)
 	{
 		messageFilteringQueue = dispatch_queue_create("com.florentpillet.nslogger.messageFiltering", NULL);
 		displayedMessages = [[NSMutableArray alloc] initWithCapacity:4096];
-		[self setShouldCloseDocument:YES];
-        threadColumnWidth = DEFAULT_THREAD_COLUMN_WIDTH;
+        threadColumnWidth = 85.0f;
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(tileLogTableNotification:)
+                                                     name:@"TileLogTableNotification"
+                                                   object:nil];
 	}
 	return self;
 }
 
 - (void)dealloc
 {
+    
+    NSLog(@"dealloc MMLogSaverController"); 
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	dispatch_release(messageFilteringQueue);
 	[attachedConnection release];
 	[displayedMessages release];
-	[messageCell release];
-	[clientInfoCell release];
-	[markerCell release];
+
 	if (lastTilingGroup)
 		dispatch_release(lastTilingGroup);
-
-    logTable.delegate = nil;
-    logTable.dataSource = nil;
     
     [super dealloc];
 }
 
-- (NSUndoManager *)undoManager
-{
-	return [[self document] undoManager];
-}
-
-- (void)windowDidLoad
-{
-    if (sXcodeFileExtensions == nil) {
-        sXcodeFileExtensions = [[NSArray alloc] initWithObjects:
-                                @"m", @"mm", @"h", @"c", @"cp", @"cpp", @"hpp",
-                                nil];
-    }
-    
-	if ([[self window] respondsToSelector:@selector(setRestorable:)])
-		[[self window] setRestorable:NO];
-
-	messageCell = [[LoggerMessageCell alloc] init];
-	clientInfoCell = [[LoggerClientInfoCell alloc] init];
-	markerCell = [[LoggerMarkerCell alloc] init];
-
-	[logTable setIntercellSpacing:NSMakeSize(0,0)];
-	[logTable setTarget:self];
-
-	[logTable registerForDraggedTypes:[NSArray arrayWithObject:NSPasteboardTypeString]];
-	[logTable setDraggingSourceOperationMask:NSDragOperationNone forLocal:YES];
-	[logTable setDraggingSourceOperationMask:NSDragOperationCopy forLocal:NO];
-
-	[logTable sizeToFit];
-
-	[[NSNotificationCenter defaultCenter] addObserver:self
-											 selector:@selector(applyFontChanges)
-												 name:kMessageAttributesChangedNotification
-											   object:nil];
-	[[NSNotificationCenter defaultCenter] addObserver:self
-											 selector:@selector(tileLogTableNotification:)
-												 name:@"TileLogTableNotification"
-											   object:nil];
-}
-
-- (NSString *)windowTitleForDocumentDisplayName:(NSString *)displayName
-{
-    
-	if ([[self document] fileURL] != nil)
-		return displayName;
-	if (attachedConnection.connected)
-		return [attachedConnection clientAppDescription];
-	return [NSString stringWithFormat:NSLocalizedString(@"%@ (disconnected)", @""),
-			[attachedConnection clientDescription]];
-}
-
-- (void)updateClientInfo
-{
-	// Update the source label
-	assert([NSThread isMainThread]);
-	[self synchronizeWindowTitleWithDocumentName];
-}
 
 
 - (void)tileLogTableMessages:(NSArray *)messages
@@ -164,34 +104,6 @@ static NSArray *sXcodeFileExtensions = nil;
 		if (group != NULL && dispatch_get_context(group) == NULL)
 			break;
 
-		// compute size
-		NSSize cachedSize = msg.cachedCellSize;
-		if (forceUpdate || cachedSize.width != tableSize.width)
-		{
-			CGFloat cachedHeight = cachedSize.height;
-			CGFloat newHeight = cachedHeight;
-			if (forceUpdate)
-				msg.cachedCellSize = NSZeroSize;
-			switch (msg.type)
-			{
-				case LOGMSG_TYPE_LOG:
-				case LOGMSG_TYPE_BLOCKSTART:
-				case LOGMSG_TYPE_BLOCKEND:
-					newHeight = [LoggerMessageCell heightForCellWithMessage:msg threadColumnWidth:threadColumnWidth maxSize:tableSize showFunctionNames:YES];
-					break;
-				case LOGMSG_TYPE_CLIENTINFO:
-				case LOGMSG_TYPE_DISCONNECT:
-					newHeight = [LoggerClientInfoCell heightForCellWithMessage:msg threadColumnWidth:threadColumnWidth maxSize:tableSize showFunctionNames:YES];
-					break;
-				case LOGMSG_TYPE_MARK:
-					newHeight = [LoggerMarkerCell heightForCellWithMessage:msg threadColumnWidth:threadColumnWidth maxSize:tableSize showFunctionNames:YES];
-					break;
-			}
-			if (newHeight != cachedHeight)
-				[updatedMessages addObject:msg];
-			else if (forceUpdate)
-				msg.cachedCellSize = cachedSize;
-		}
 	}
 	if ([updatedMessages count])
 	{
@@ -206,8 +118,7 @@ static NSArray *sXcodeFileExtensions = nil;
 						break;
 					[set addIndex:pos];
 				}
-				if ([set count])
-					[logTable noteHeightOfRowsWithIndexesChanged:set];
+
 				[set release];
 			}
 		});
@@ -220,18 +131,8 @@ static NSArray *sXcodeFileExtensions = nil;
     NSLog(@"tileLogTable:");
 	// tile the visible rows (and a bit more) first, then tile all the rest
 	// this gives us a better perceived speed
-	NSSize tableSize = [logTable frame].size;
-	NSRect r = [[logTable superview] convertRect:[[logTable superview] bounds] toView:logTable];
-	NSRange visibleRows = [logTable rowsInRect:r];
-	visibleRows.location = MAX((int)0, (int)visibleRows.location - 10);
-	visibleRows.length = MIN(visibleRows.location + visibleRows.length + 10, [displayedMessages count] - visibleRows.location);
-	if (visibleRows.length)
-	{
-		[self tileLogTableMessages:[displayedMessages subarrayWithRange:visibleRows]
-						  withSize:tableSize
-					   forceUpdate:forceUpdate
-							 group:NULL];
-	}
+
+    NSSize tableSize = NSZeroSize;
 	
 	// cancel previous tiling group
 	if (lastTilingGroup != NULL)
@@ -272,14 +173,6 @@ static NSArray *sXcodeFileExtensions = nil;
 	[self tileLogTable:NO];
 }
 
-- (void)applyFontChanges
-{
-    NSLog(@"applyFontChanges");
-	[self tileLogTable:YES];
-	[logTable reloadData];
-}
-
-
 
 
 // -----------------------------------------------------------------------------
@@ -288,6 +181,7 @@ static NSArray *sXcodeFileExtensions = nil;
 // -----------------------------------------------------------------------------
 - (NSDictionary *)settingsForClientApplication
 {
+    NSLog(@"settingsForClientApplication");
 	NSString *clientAppIdentifier = [attachedConnection clientName];
 	if (![clientAppIdentifier length])
 		return nil;
@@ -304,6 +198,7 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (void)saveSettingsForClientApplication:(NSDictionary *)newSettings
 {
+    NSLog(@"saveSettingsForClientApplication:");
 	NSString *clientAppIdentifier = [attachedConnection clientName];
 	if (![clientAppIdentifier length])
 		return;
@@ -317,49 +212,13 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (void)setSettingForClientApplication:(id)aValue forKey:(NSString *)aKey
 {
+    NSLog(@"setSettingForClientApplication:forKey:");
 	NSMutableDictionary *dict = [[self settingsForClientApplication] mutableCopy];
 	[dict setObject:aValue forKey:aKey];
 	[self saveSettingsForClientApplication:dict];
 	[dict release];
 }
 
-
-
-
-// -----------------------------------------------------------------------------
-#pragma mark -
-#pragma mark Window delegate
-// -----------------------------------------------------------------------------
-- (void)windowDidResize:(NSNotification *)notification
-{
-	if (![[self window] inLiveResize])
-		[self tileLogTable:NO];
-}
-
-- (void)windowDidEndLiveResize:(NSNotification *)notification
-{
-	[self tileLogTable:NO];
-}
-
-
-- (BOOL)windowShouldClose:(id)sender {
-    
-    //MM ADDITION POINT:
-    //Prevent people from closing the Window when the Connection Manager is on:
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:kPrefUseConnectionManager]) {
-        return YES;
-    }
-    else {
-        //Hide the window, but don't destroy it!
-        [self.window orderOut:nil];
-        return NO;
-    }
-}
-
-//-(void)windowWillClose:(NSNotification *)notification {
-//
-//    NSLog(@"Window will close!");
-//}
 
 
 // -----------------------------------------------------------------------------
@@ -369,22 +228,8 @@ static NSArray *sXcodeFileExtensions = nil;
 - (void)messagesAppendedToTable
 {
 	assert([NSThread isMainThread]);
-	if (attachedConnection.connected)
-	{
-		NSRect r = [[logTable superview] convertRect:[[logTable superview] bounds] toView:logTable];
-		NSRange visibleRows = [logTable rowsInRect:r];
-		BOOL lastVisible = (visibleRows.location == NSNotFound ||
-							visibleRows.length == 0 ||
-							(visibleRows.location + visibleRows.length) >= lastMessageRow);
-		[logTable noteNumberOfRowsChanged];
-		if (lastVisible)
-			[logTable scrollRowToVisible:[displayedMessages count] - 1];
-	}
-	else
-	{
-		[logTable noteNumberOfRowsChanged];
-	}
 	lastMessageRow = [displayedMessages count];
+
 }
 
 - (void)appendMessagesToTable:(NSArray *)messages
@@ -421,30 +266,12 @@ static NSArray *sXcodeFileExtensions = nil;
 	assert([NSThread isMainThread]);
 	@synchronized (attachedConnection.messages)
 	{
-		BOOL quickFilterWasFirstResponder = NO;
 		id messageToMakeVisible = [selectedMessages objectAtIndex:0];
-		if (messageToMakeVisible == nil)
-		{
-			// Remember the currently selected messages
-			NSIndexSet *selectedRows = [logTable selectedRowIndexes];
-			if ([selectedRows count])
-				selectedMessages = [displayedMessages objectsAtIndexes:selectedRows];
-            
-			NSRect r = [[logTable superview] convertRect:[[logTable superview] bounds] toView:logTable];
-			NSRange visibleRows = [logTable rowsInRect:r];
-			if (visibleRows.length != 0)
-			{
-				NSIndexSet *selectedVisible = [selectedRows indexesInRange:visibleRows options:0 passingTest:^(NSUInteger idx, BOOL *stop){return YES;}];
-				if ([selectedVisible count])
-					messageToMakeVisible = [displayedMessages objectAtIndex:[selectedVisible firstIndex]];
-				else
-					messageToMakeVisible = [displayedMessages objectAtIndex:visibleRows.location];
-			}
-		}
         
 		LoggerConnection *theConnection = attachedConnection;
         
-		NSSize tableFrameSize = [logTable frame].size;
+        NSSize tableFrameSize = NSZeroSize;
+        
 		NSUInteger numMessages = [attachedConnection.messages count];
 		for (int i = 0; i < numMessages;)
 		{
@@ -454,7 +281,7 @@ static NSArray *sXcodeFileExtensions = nil;
 					dispatch_async(dispatch_get_main_queue(), ^{
 						lastMessageRow = 0;
 						[displayedMessages removeAllObjects];
-						[logTable reloadData];
+						//[logTable reloadData];
 					});
 				});
 			}
@@ -499,12 +326,7 @@ static NSArray *sXcodeFileExtensions = nil;
 							if (msgIndex != NSNotFound)
 								[newSelectionIndexes addIndex:(NSUInteger)msgIndex];
 						}
-						if ([newSelectionIndexes count])
-						{
-							[logTable selectRowIndexes:newSelectionIndexes byExtendingSelection:NO];
-							if (!quickFilterWasFirstResponder)
-								[[self window] makeFirstResponder:logTable];
-						}
+
 						[newSelectionIndexes release];
 					}
 					
@@ -529,8 +351,8 @@ static NSArray *sXcodeFileExtensions = nil;
 								else
 									msg = [attachedConnection.messages objectAtIndex:where-1];
 							}
-							if (msgIndex != NSNotFound)
-								[logTable scrollRowToVisible:msgIndex];
+
+                            
 						}
 					}
 					
@@ -551,9 +373,10 @@ static NSArray *sXcodeFileExtensions = nil;
     
 	assert([NSThread isMainThread]);
 	NSPredicate *aFilter = filterPredicate;		// catch value now rather than dereference it from self later
-	NSSize tableFrameSize = [logTable frame].size;
+	//NSSize tableFrameSize = [logTable frame].size;
 	dispatch_async(messageFilteringQueue, ^{
-		[self filterIncomingMessages:(NSArray *)messages withFilter:aFilter tableFrameSize:tableFrameSize];
+        [self filterIncomingMessages:(NSArray *)messages withFilter:aFilter tableFrameSize:NSZeroSize];
+
 	});
 }
 
@@ -590,10 +413,10 @@ static NSArray *sXcodeFileExtensions = nil;
 	if (attachedConnection != nil)
 	{
 		// Completely clear log table
-		[logTable deselectAll:self];
+		//[logTable deselectAll:self];
 		lastMessageRow = 0;
 		[displayedMessages removeAllObjects];
-		[logTable reloadData];
+		//[logTable reloadData];
 
 
 		// Cancel pending tasks
@@ -617,7 +440,6 @@ static NSArray *sXcodeFileExtensions = nil;
 		attachedConnection.attachedToWindow = YES;
 		//dispatch_async(dispatch_get_main_queue(), ^{
 			initialRefreshDone = NO;
-			[self updateClientInfo];
 			[self refreshAllMessages:nil];
 		//});
 	}
@@ -625,10 +447,7 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (NSNumber *)shouldEnableRunsPopup
 {
-	NSUInteger numRuns = [((LoggerDocument *)[self document]).attachedLogs count];
-	if (![[NSUserDefaults standardUserDefaults] boolForKey:kPrefKeepMultipleRuns] && numRuns <= 1)
-		return (id)kCFBooleanFalse;
-	return (id)kCFBooleanTrue;
+	return [NSNumber numberWithBool:NO];
 }
 
 
@@ -658,7 +477,9 @@ didReceiveMessages:(NSArray *)theMessages
 - (void)remoteDisconnected:(LoggerConnection *)theConnection
 {
 	// we always get called on the main thread
-	[self updateClientInfo];
+    if ([self.delegate respondsToSelector:@selector(updateClientInfo)]) {
+        [self.delegate updateClientInfo];
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -672,133 +493,16 @@ didReceiveMessages:(NSArray *)theMessages
 		if ([keyPath isEqualToString:@"clientIDReceived"])
 		{
 			dispatch_async(dispatch_get_main_queue(), ^{
-				[self updateClientInfo];
+				
+                if ([self.delegate respondsToSelector:@selector(updateClientInfo)]) {
+                    [self.delegate updateClientInfo];
+                }
 				
 			});			
 		}
 	}
 	
 }
-
-// -----------------------------------------------------------------------------
-#pragma mark -
-#pragma mark NSTableDelegate
-// -----------------------------------------------------------------------------
-- (NSCell *)tableView:(NSTableView *)tableView dataCellForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
-{
-	if (tableView == logTable && row >= 0 && row < [displayedMessages count])
-	{
-		LoggerMessage *msg = [displayedMessages objectAtIndex:row];
-		switch (msg.type)
-		{
-			case LOGMSG_TYPE_LOG:
-			case LOGMSG_TYPE_BLOCKSTART:
-			case LOGMSG_TYPE_BLOCKEND:
-				return messageCell;
-			case LOGMSG_TYPE_CLIENTINFO:
-			case LOGMSG_TYPE_DISCONNECT:
-				return clientInfoCell;
-			case LOGMSG_TYPE_MARK:
-				return markerCell;
-			default:
-				assert(false);
-				break;
-		}
-	}
-	return nil;
-}
-
-- (void)tableView:(NSTableView *)aTableView willDisplayCell:(id)aCell forTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex
-{
-	if (aTableView == logTable && rowIndex >= 0 && rowIndex < [displayedMessages count])
-	{
-		// setup the message to be displayed
-		LoggerMessageCell *cell = (LoggerMessageCell *)aCell;
-		cell.message = [displayedMessages objectAtIndex:rowIndex];
-		cell.shouldShowFunctionNames = NO;
-
-		// if previous message is a Mark, go back a bit more to get the real previous message
-		// if previous message is ClientInfo, don't use it.
-		NSInteger idx = rowIndex - 1;
-		LoggerMessage *prev = nil;
-		while (prev == nil && idx >= 0)
-		{
-			prev = [displayedMessages objectAtIndex:idx--];
-			if (prev.type == LOGMSG_TYPE_CLIENTINFO || prev.type == LOGMSG_TYPE_MARK)
-				prev = nil;
-		} 
-		
-		cell.previousMessage = prev;
-	}
-}
-
-- (CGFloat)tableView:(NSTableView *)tableView heightOfRow:(NSInteger)row
-{
-	assert([NSThread isMainThread]);
-	if (tableView == logTable && row >= 0 && row < [displayedMessages count])
-	{
-		// use only cached sizes
-		LoggerMessage *message = [displayedMessages objectAtIndex:row];
-		NSSize cachedSize = message.cachedCellSize;
-		if (cachedSize.height)
-			return cachedSize.height;
-	}
-	return [tableView rowHeight];
-}
-
-
-// -----------------------------------------------------------------------------
-#pragma mark -
-#pragma mark NSTableDataSource
-// -----------------------------------------------------------------------------
-- (int)numberOfRowsInTableView:(NSTableView *)tableView
-{
-	return [displayedMessages count];
-}
-
-- (id)tableView:(NSTableView *)tableView
-	objectValueForTableColumn:(NSTableColumn *)tableColumn
-	row:(int)rowIndex
-{
-	if (rowIndex >= 0 && rowIndex < [displayedMessages count])
-		return [displayedMessages objectAtIndex:rowIndex];
-	return nil;
-}
-
-- (BOOL)tableView:(NSTableView *)tv writeRowsWithIndexes:(NSIndexSet *)rowIndexes toPasteboard:(NSPasteboard*)pboard
-{
-	if (tv == logTable)
-	{
-		NSArray *draggedMessages = [displayedMessages objectsAtIndexes:rowIndexes];
-		NSMutableString *string = [[NSMutableString alloc] initWithCapacity:[draggedMessages count] * 128];
-		for (LoggerMessage *msg in draggedMessages)
-			[string appendString:[msg textRepresentation]];
-		[pboard writeObjects:[NSArray arrayWithObject:string]];
-		[string release];
-		return YES;
-	}
-
-	return NO;
-}
-
-- (NSDragOperation)tableView:(NSTableView*)tv validateDrop:(id <NSDraggingInfo>)dragInfo proposedRow:(NSInteger)row proposedDropOperation:(NSTableViewDropOperation)op
-{
-	return NSDragOperationNone;
-}
-
-- (BOOL)tableView:(NSTableView *)tv
-	   acceptDrop:(id <NSDraggingInfo>)dragInfo
-			  row:(NSInteger)row
-	dropOperation:(NSTableViewDropOperation)operation
-{
-	BOOL added = NO;
-	
-	if (added)
-		[(LoggerAppDelegate *)[NSApp delegate] saveFiltersDefinition];
-	return added;
-}
-
-
 
 
 // -----------------------------------------------------------------------------
@@ -808,27 +512,17 @@ didReceiveMessages:(NSArray *)theMessages
 - (BOOL)validateUserInterfaceItem:(id)anItem
 {
 	SEL action = [anItem action];
-	if (action == @selector(deleteMark:))
-	{
-		NSInteger rowIndex = [logTable selectedRow];
-		if (rowIndex >= 0 && rowIndex < (NSInteger)[displayedMessages count])
-		{
-			LoggerMessage *markMessage = [displayedMessages objectAtIndex:(NSUInteger)rowIndex];
-			return (markMessage.type == LOGMSG_TYPE_MARK);
-		}
-		return NO;
-	}
-	else if (action == @selector(clearCurrentLog:))
+    if (action == @selector(clearCurrentLog))
 	{
 		// Allow "Clear Log" only if the log was not restored from save
 		if (attachedConnection == nil || attachedConnection.restoredFromSave)
 			return NO;
 	}
-	else if (action == @selector(clearAllLogs:))
+	else if (action == @selector(clearAllLogs))
 	{
 		// Allow "Clear All Run Logs" only if the log was not restored from save
 		// and there are multiple run logs
-		if (attachedConnection == nil || attachedConnection.restoredFromSave || [((LoggerDocument *)[self document]).attachedLogs count] <= 1)
+		if (attachedConnection == nil || attachedConnection.restoredFromSave)
 			return NO;
 	}
 	return YES;
@@ -840,22 +534,27 @@ didReceiveMessages:(NSArray *)theMessages
 // -----------------------------------------------------------------------------
 - (BOOL)canClearCurrentLog
 {
-	return (attachedConnection != nil && !attachedConnection.restoredFromSave);
+	return YES;
 }
 
-- (IBAction)clearCurrentLog:(id)sender
+- (void)clearCurrentLog
 {
-	[(LoggerDocument *)[self document] clearLogs:NO];
+    if ([self.delegate respondsToSelector:@selector(clearLogs)]) {
+        [self.delegate clearLogs];
+    }
+
 }
 
 - (BOOL)canClearAllLogs
 {
-	return (attachedConnection != nil && !attachedConnection.restoredFromSave && [((LoggerDocument *)[self document]).attachedLogs count] > 1);
+	return YES;
 }
 
-- (IBAction)clearAllLogs:(id)sender
+- (void)clearAllLogs
 {
-	[(LoggerDocument *)[self document] clearLogs:YES];
+    if ([self.delegate respondsToSelector:@selector(clearLogs)]) {
+        [self.delegate clearLogs];
+    }
 }
 
 

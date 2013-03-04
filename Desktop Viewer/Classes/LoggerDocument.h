@@ -29,11 +29,20 @@
  * 
  */
 #import "LoggerConnection.h"
+#import "MMLogSaverController.h"
 
 @class LoggerWindowController;
-@class MMLoggerWindowController;
 
-@interface LoggerDocument : NSDocument <LoggerConnectionDelegate>
+typedef enum {
+    active,
+	idle,
+	killed,         //Disconnected
+	unknown,
+    maxDocumentStatus
+} DocumentStatus;
+
+
+@interface LoggerDocument : NSDocument <LoggerConnectionDelegate, MMLogSaverDelegate>
 {
 	NSMutableArray *attachedLogs;
 	LoggerConnection *currentConnection;			// the connection currently visible in the main window
@@ -44,10 +53,9 @@
     NSUInteger messageCounter;
     NSUInteger idleDefinitionTime;
     NSUInteger maximumMessagesPerLog;
+    MMLogSaverController *saverController;
     
-    BOOL active;
-    BOOL disconnected;
-    BOOL idle;
+    DocumentStatus status;
     
     NSTimer *idleTimer;
     
@@ -57,22 +65,21 @@
 @property (nonatomic, readonly) NSArray *attachedLogs;
 @property (nonatomic, retain) NSNumber *indexOfCurrentVisibleLog;
 @property (nonatomic, assign) LoggerConnection *currentConnection;
-@property (nonatomic, assign) BOOL idle;
-@property (nonatomic, assign) BOOL active;
-@property (nonatomic, assign) BOOL disconnected;
+@property (nonatomic, assign) DocumentStatus status;
+@property (nonatomic, assign) MMLogSaverController *saverController;
+
++ (NSString *)stringForDocumentStatus:(DocumentStatus)aStatus;
 
 - (id)initWithConnection:(LoggerConnection *)aConnection;
-//- (LoggerWindowController *)mainWindowController;
-- (MMLoggerWindowController *)mainWindowController;
+- (LoggerWindowController *)mainWindowController;
 - (NSArray *)attachedLogsPopupNames;
 - (void)addConnection:(LoggerConnection *)newConnection;
-- (void)clearLogs:(BOOL)includingPreviousRuns;
 
 
 //MM ADDITION POINT:
-- (void)assignConnectionToDocument;
+- (void)createSaverController;
+- (void)attachConnectionToWindowController;
 - (void)destroyMainWindow;
-- (void)hideMainWindow;
 - (void)showMainWindow;
 - (void)saveThisLog;
 

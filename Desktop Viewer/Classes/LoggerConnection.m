@@ -76,6 +76,7 @@ char sConnectionAssociatedObjectKey = 1;
 
 - (void)dealloc
 {
+    NSLog(@"dealloc LoggerConnection");
 	dispatch_release(messageProcessingQueue);
 	[messages release];
 	[parentIndexesStack release];
@@ -98,7 +99,7 @@ char sConnectionAssociatedObjectKey = 1;
     
     
     //ESTEBAN: REMOVE THIS LINE! MM_ADDITION-POINT
-    return NO;
+    //return NO;
     
     
     

@@ -30,7 +30,6 @@
  */
 #import "LoggerDetailsWindowController.h"
 #import "LoggerWindowController.h"
-#import "MMLoggerWindowController.h"
 #import "LoggerDocument.h"
 #import "LoggerMessage.h"
 #import "LoggerMessageCell.h"

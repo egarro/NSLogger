@@ -56,8 +56,7 @@
 		3DE8CE7E12AE4A67005C83D0 /* relaunch.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DE8CE7312AE49E7005C83D0 /* relaunch.m */; };
 		3DE8CEEC12AE50A8005C83D0 /* relaunch in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3DE8CE7812AE4A17005C83D0 /* relaunch */; };
 		3DEE27B712B773D8009ADA67 /* LoggerNativeTransport.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D7C75550F4026D2006B55AD /* LoggerNativeTransport.m */; };
-		4150766516DD764A00E87AF9 /* MMLoggerWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4150766416DD764A00E87AF9 /* MMLoggerWindowController.m */; };
-		4150766716DD766300E87AF9 /* MMLoggerWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4150766616DD766300E87AF9 /* MMLoggerWindow.xib */; };
+		4150766516DD764A00E87AF9 /* MMLogSaverController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4150766416DD764A00E87AF9 /* MMLogSaverController.m */; };
 		439F14BD1531A492006A5CE3 /* xedReplacement.sh in Resources */ = {isa = PBXBuildFile; fileRef = 439F14BB1531A185006A5CE3 /* xedReplacement.sh */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -193,9 +192,8 @@
 		3DE01E931268D32100A39E7E /* LoggerDetailsWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LoggerDetailsWindowController.m; path = Classes/LoggerDetailsWindowController.m; sourceTree = "<group>"; };
 		3DE8CE7312AE49E7005C83D0 /* relaunch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = relaunch.m; path = Classes/relaunch.m; sourceTree = "<group>"; };
 		3DE8CE7812AE4A17005C83D0 /* relaunch */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = relaunch; sourceTree = BUILT_PRODUCTS_DIR; };
-		4150766316DD764900E87AF9 /* MMLoggerWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MMLoggerWindowController.h; path = Classes/MM/MMLoggerWindowController.h; sourceTree = "<group>"; };
-		4150766416DD764A00E87AF9 /* MMLoggerWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MMLoggerWindowController.m; path = Classes/MM/MMLoggerWindowController.m; sourceTree = "<group>"; };
-		4150766616DD766300E87AF9 /* MMLoggerWindow.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = MMLoggerWindow.xib; path = Classes/MM/MMLoggerWindow.xib; sourceTree = "<group>"; };
+		4150766316DD764900E87AF9 /* MMLogSaverController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MMLogSaverController.h; path = Classes/MM/MMLogSaverController.h; sourceTree = "<group>"; };
+		4150766416DD764A00E87AF9 /* MMLogSaverController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MMLogSaverController.m; path = Classes/MM/MMLogSaverController.m; sourceTree = "<group>"; };
 		439F14BB1531A185006A5CE3 /* xedReplacement.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = xedReplacement.sh; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* NSLogger.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NSLogger.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -227,8 +225,8 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				4150766316DD764900E87AF9 /* MMLoggerWindowController.h */,
-				4150766416DD764A00E87AF9 /* MMLoggerWindowController.m */,
+				4150766316DD764900E87AF9 /* MMLogSaverController.h */,
+				4150766416DD764A00E87AF9 /* MMLogSaverController.m */,
 				3D4EA1DF0F3854C300DF81E6 /* LoggerWindowController.h */,
 				3D4EA1E00F3854C300DF81E6 /* LoggerWindowController.m */,
 				331161E816D3DEBE0067FA4B /* MMConnectionManagerWindowController.h */,
@@ -328,7 +326,6 @@
 				3D6A34A71262FD5500D0EC3A /* MainMenu.xib */,
 				3D6A37C8126399D700D0EC3A /* LoggerStatus.xib */,
 				3D6A34A51262FD5500D0EC3A /* LoggerWindow.xib */,
-				4150766616DD766300E87AF9 /* MMLoggerWindow.xib */,
 				3D027B2B12663E1200E6F241 /* LoggerPrefs.xib */,
 				3DE01E8F1268D30C00A39E7E /* LoggerDetailsWindow.xib */,
 				3D8E078013097D6E0024917B /* ssl_badge.png */,
@@ -557,7 +554,6 @@
 				439F14BD1531A492006A5CE3 /* xedReplacement.sh in Resources */,
 				331161E416D2FD9B0067FA4B /* MM_Logo.png in Resources */,
 				331161EC16D3E2990067FA4B /* MMConnectionManager.xib in Resources */,
-				4150766716DD766300E87AF9 /* MMLoggerWindow.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -620,7 +616,7 @@
 				B9C3CDBB16A86473005484D4 /* NSColor+NSLogger.m in Sources */,
 				331161E716D3DEA30067FA4B /* MMConnectionManagerTableCell.m in Sources */,
 				331161EA16D3DEBF0067FA4B /* MMConnectionManagerWindowController.m in Sources */,
-				4150766516DD764A00E87AF9 /* MMLoggerWindowController.m in Sources */,
+				4150766516DD764A00E87AF9 /* MMLogSaverController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -685,7 +681,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "iPhone Developer: David Engel (UVRJGG3J6Y)";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -698,6 +694,7 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_NAME = NSLogger;
+				PROVISIONING_PROFILE = "37719CFE-3189-4F88-AF02-A8AAFD703F01";
 			};
 			name = Debug;
 		};
@@ -705,7 +702,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "iPhone Developer: David Engel (UVRJGG3J6Y)";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -716,6 +713,7 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_NAME = NSLogger;
+				PROVISIONING_PROFILE = "37719CFE-3189-4F88-AF02-A8AAFD703F01";
 			};
 			name = Release;
 		};

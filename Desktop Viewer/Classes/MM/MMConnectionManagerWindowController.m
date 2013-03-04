@@ -116,18 +116,21 @@
         if ([target isEqualToString:selection] ||
             [selection isEqualToString:@"All Targets"]) {
             
-            if (document.active) {
-                a++;
+            switch (document.status) {
+                case (DocumentStatus)active:
+                    a++;
+                    break;
+                case (DocumentStatus)killed:
+                    d++;
+                    break;
+                case (DocumentStatus)idle:
+                    i++;
+                    break;
+                default:
+                     NSLog(@"Client in unknown state found");
+                    break;
             }
-            else if (document.disconnected) {
-                d++;
-            }
-            else if (document.idle) {
-                i++;
-            }
-            else {
-                NSLog(@"Client in unknown state found");
-            }
+            
 
             t++;
         }
@@ -175,18 +178,22 @@
                         document.currentConnection.clientOSVersion,
                         document.currentConnection.clientVersion];
     
-    if (document.active) {
-        [documentStatusCell setState:1];
+    
+    switch (document.status) {
+        case (DocumentStatus)active:
+            [documentStatusCell setState:1];
+            break;
+        case (DocumentStatus)killed:
+            [documentStatusCell setState:2];
+            break;
+        case (DocumentStatus)idle:
+            [documentStatusCell setState:3];
+            break;
+        default:
+            [documentStatusCell setState:4];
+            break;
     }
-    else if (document.disconnected) {
-        [documentStatusCell setState:2];
-    }
-    else if(document.idle) {
-        [documentStatusCell setState:3];
-    }
-    else {
-        [documentStatusCell setState:4];
-    }
+    
     
     [documentStatusCell setDesc:desc];
     [documentStatusCell setStatus:status];
@@ -214,8 +221,14 @@
     if (selectedRow < [documents count]) {
             //Here we have to forward the click to the open the proper document!
      [(NSTableView *)sender selectRowIndexes:[NSIndexSet indexSetWithIndex:selectedRow] byExtendingSelection:NO];
-        //[(LoggerDocument *)[documents objectAtIndex:selectedRow] makeWindowControllers];
-            [(LoggerDocument *)[documents objectAtIndex:selectedRow] showMainWindow];
+        
+             LoggerDocument *selectedDocument = (LoggerDocument *)[documents objectAtIndex:selectedRow];
+             if (selectedDocument.status != (DocumentStatus)killed) {
+        
+                 [selectedDocument makeWindowControllers];
+                 [selectedDocument showMainWindow];
+
+             }
         
             //Deselect the cell:
             [self performSelector:@selector(deselectTableRow:) withObject:[NSNumber numberWithInteger:selectedRow] afterDelay:0.2];
@@ -231,8 +244,15 @@
             //Here we have to forward the click to the open the proper document!
             [(NSTableView *)sender selectRowIndexes:[NSIndexSet indexSetWithIndex:selectedRow] byExtendingSelection:NO];
             int d = [documents indexOfObject:[filteredListContent objectAtIndex:selectedRow]];
-            [(LoggerDocument *)[documents objectAtIndex:d] showMainWindow];
             
+            LoggerDocument *selectedDocument = (LoggerDocument *)[documents objectAtIndex:d];
+            
+            if (selectedDocument.status != (DocumentStatus)killed) {
+                //Create a LoggerWindow and showit!
+                [selectedDocument makeWindowControllers];
+                [selectedDocument showMainWindow];
+            }
+                        
             //Deselect the cell:
             [self performSelector:@selector(deselectTableRow:) withObject:[NSNumber numberWithInteger:selectedRow] afterDelay:0.2];
         }

@@ -32,7 +32,7 @@
 #import "LoggerAppDelegate.h"
 #import "LoggerNativeTransport.h"
 #import "LoggerWindowController.h"
-#import "MMLoggerWindowController.h"
+#import "MMLogSaverController.h"
 #import "LoggerDocument.h"
 #import "LoggerDocumentController.h"
 #import "LoggerStatusWindowController.h"
@@ -291,13 +291,19 @@ NSString * const kPref_ApplicationFilterSet = @"appFilterSet";
 
 - (void)newConnection:(LoggerConnection *)aConnection fromTransport:(LoggerTransport *)aTransport
 {
+    
+    NSLog(@"LoggerAppDelegate newConnection:fromTransport");
+    
 	// we are being called on the main thread (using dispatch_sync() from transport, so take care)
 	assert([NSThread isMainThread]);
 
 	// Go through all open documents,
 	// Detect reconnection from a previously disconnected client
-	NSDocumentController *docController = [NSDocumentController sharedDocumentController];
-	for (LoggerDocument *doc in [docController documents])
+	// NSDocumentController *docController = [NSDocumentController sharedDocumentController];
+	
+    //Go through all the stored documents which are displayed in our ConnectionManagerWindow:
+    
+    for (LoggerDocument *doc in self.documents)
 	{
 		if (![doc isKindOfClass:[LoggerDocument class]])
 			continue;
@@ -308,25 +314,27 @@ NSString * const kPref_ApplicationFilterSet = @"appFilterSet";
 				// recycle this document window, bring it to front
 				aConnection.reconnectionCount = ((LoggerConnection *)[doc.attachedLogs lastObject]).reconnectionCount + 1;
 				[doc addConnection:aConnection];
-				return;
+				
+                return;
 			}
 		}
 	}
 
 	// Instantiate a new window for this connection
 	LoggerDocument *doc = [[LoggerDocument alloc] initWithConnection:aConnection];
-	[docController addDocument:doc];
-    [doc makeWindowControllers];
+	//[docController addDocument:doc];
+    //[self.documents addObject:doc];
+    
     
     //MM ADDITION POINT:
     //Check whether we should add an entry to the Connection Manager or display a window.
     if (![[NSUserDefaults standardUserDefaults] boolForKey:kPrefUseConnectionManager]) {
-        //[doc makeWindowControllers];
+        [doc makeWindowControllers];
         [doc showWindows];
     }
     else {
          //No window is created just yet!
-         [doc hideMainWindow];
+         [doc createSaverController];
     }
     
     

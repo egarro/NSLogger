@@ -1,5 +1,5 @@
 /*
- * MMLoggerWindowController.h
+ * MMLogSaverController.h
  *
  * BSD license follows (http://www.opensource.org/licenses/bsd-license.php)
  * 
@@ -30,18 +30,14 @@
  */
 #import "LoggerConnection.h"
 
-@class LoggerMessageCell, LoggerClientInfoCell, LoggerMarkerCell, LoggerTableView;
+@protocol MMLogSaverDelegate;
 
-@interface MMLoggerWindowController : NSWindowController <NSWindowDelegate, LoggerConnectionDelegate, NSTableViewDataSource, NSTableViewDelegate>
+@interface MMLogSaverController : NSObject <LoggerConnectionDelegate>
 {
-	IBOutlet LoggerTableView *logTable;
+
 	LoggerConnection *attachedConnection;
-
-	LoggerMessageCell *messageCell;
-	LoggerClientInfoCell *clientInfoCell;
-	LoggerMarkerCell *markerCell;
     CGFloat threadColumnWidth;
-
+    
 	NSMutableArray *displayedMessages;
 
 	dispatch_queue_t messageFilteringQueue;
@@ -50,23 +46,21 @@
 	int lastMessageRow;
 	BOOL initialRefreshDone;
 	BOOL clientAppSettingsRestored;
+    
+    id<MMLogSaverDelegate> delegate;
 }
 
 @property (nonatomic, retain) LoggerConnection *attachedConnection;
 @property (nonatomic, assign) CGFloat threadColumnWidth;
+@property (nonatomic, assign) id<MMLogSaverDelegate> delegate;
 
-
-- (IBAction)clearCurrentLog:(id)sender;
-- (IBAction)clearAllLogs:(id)sender;
-
+- (void)clearCurrentLog;
+- (void)clearAllLogs;
 
 @end
 
-@interface LoggerTableView : NSTableView
-{
-}
+
+@protocol MMLogSaverDelegate <NSObject>
+-(void)clearLogs;
+-(void)updateClientInfo;
 @end
-
-#define	DEFAULT_THREAD_COLUMN_WIDTH	85.0f
-
-

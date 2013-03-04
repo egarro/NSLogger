@@ -212,7 +212,10 @@
 	imagesSentLabel.text = [NSString stringWithFormat:@"%d", imagesCounter];
     
     //REMOVE THIS LINES: ESTEBAN MM_ADDITION_POINT
-    
+//    if (counter % 4 == 0) {
+//        [self stopThisLogger];
+//    }
+
 
     
 }

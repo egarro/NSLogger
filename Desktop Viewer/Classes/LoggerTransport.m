@@ -49,6 +49,7 @@
 
 - (void)dealloc
 {
+    NSLog(@"dealloc LoggerTransport");
 	[failureReason release];
 	[connections release];
 	[super dealloc];
@@ -56,11 +57,13 @@
 
 - (void)addConnection:(LoggerConnection *)aConnection
 {
+    NSLog(@"Adding a connection to the transport");
 	[connections addObject:aConnection];
 }
 
 - (void)removeConnection:(LoggerConnection *)aConnection
 {
+        NSLog(@"Remove a connection to the transport");
 	if ([connections containsObject:aConnection])
 	{
 		[aConnection shutdown];
