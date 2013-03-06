@@ -42,8 +42,8 @@ char sConnectionAssociatedObjectKey = 1;
 
 @synthesize delegate;
 @synthesize messages;
-@synthesize reconnectionCount, connected, restoredFromSave, attachedToWindow;
-@synthesize clientName, clientVersion, clientOSName, clientOSVersion, clientDevice, clientAddress, clientUDID;
+@synthesize reconnectionCount, connected, restoredFromSave, attachedToWindow, isWiFi;
+@synthesize clientName, clientVersion, clientOSName, clientOSVersion, clientDevice, clientAddress, clientUDID, clientMACAddress, clientCrashCount;
 @synthesize messageProcessingQueue;
 @synthesize filenames, functionNames;
 
@@ -87,21 +87,88 @@ char sConnectionAssociatedObjectKey = 1;
 	[clientDevice release];
 	[clientAddress release];
 	[clientUDID release];
+    [clientMACAddress release];
+    [clientCrashCount release];
 	[filenames release];
 	[functionNames release];
 	[super dealloc];
 }
 
-- (BOOL)isNewRunOfClient:(LoggerConnection *)aConnection
-{
+
+- (BOOL)isReconnectionFromClient:(LoggerConnection *)aConnection {
 	// Try to detect if a connection is a new run of an older, disconnected session
 	// (goal is to detect restarts, so as to replace logs in the same window)
-    
     
     //ESTEBAN: REMOVE THIS LINE! MM_ADDITION-POINT
     //return NO;
     
+	assert(restoredFromSave == NO);
     
+    BOOL resp = NO;
+    
+	// check whether client info is the same
+	BOOL (^isSame)(NSString *, NSString *) = ^(NSString *s1, NSString *s2)
+	{
+		if ((s1 == nil) != (s2 == nil))
+			return NO;
+		if (s1 != nil && ![s2 isEqualToString:s1])
+			return NO;
+		return YES;	// s1 and d2 either nil or same
+	};
+
+    if (clientUDID != nil && isSame(clientUDID, aConnection.clientUDID)) resp = YES;
+    
+    
+    if (resp) {
+        if (clientMACAddress != nil) {
+            isWiFi = YES;
+            if (aConnection.clientMACAddress == nil)  {
+                
+                aConnection.clientMACAddress = clientMACAddress;
+                aConnection.isWiFi = NO;
+            }
+            else {
+                aConnection.isWiFi = YES;
+                if (!isSame(clientMACAddress, aConnection.clientMACAddress)) {
+                    resp = NO;
+                }
+            }
+        }
+        else {
+            isWiFi = NO;
+            if (aConnection.clientMACAddress != nil)  {
+                
+                clientMACAddress = aConnection.clientMACAddress;
+                aConnection.isWiFi = YES;
+            }
+            else {
+                aConnection.isWiFi = NO;
+            }
+        }
+    }
+    else {
+        if (clientMACAddress != nil) {
+            isWiFi = YES;
+        }
+        else {
+            isWiFi = NO;
+        }
+    
+    }
+    
+    
+    
+    
+    return resp;
+    
+    
+}
+
+
+- (BOOL)isNewRunOfClient:(LoggerConnection *)aConnection
+{
+	// Try to detect if a connection is a new run of an older, disconnected session
+	// (goal is to detect restarts, so as to replace logs in the same window)
     
 	assert(restoredFromSave == NO);
 
@@ -279,7 +346,13 @@ char sConnectionAssociatedObjectKey = 1;
 		value = [parts objectForKey:[NSNumber numberWithInteger:PART_KEY_UNIQUEID]];
 		if (value != nil)
 			self.clientUDID = value;
-
+		value = [parts objectForKey:[NSNumber numberWithInteger:PART_KEY_MACADDRESS]];
+		if (value != nil)
+			self.clientMACAddress = value;
+		value = [parts objectForKey:[NSNumber numberWithInteger:PART_KEY_CRASHCOUNT]];
+		if (value != nil)
+			self.clientCrashCount = value;
+        
 		[[NSNotificationCenter defaultCenter] postNotificationName:kShowStatusInStatusWindowNotification
 															object:self];
 	});
@@ -368,6 +441,9 @@ char sConnectionAssociatedObjectKey = 1;
 		clientOSVersion = [[aDecoder decodeObjectForKey:@"clientOSVersion"] retain];
 		clientDevice = [[aDecoder decodeObjectForKey:@"clientDevice"] retain];
 		clientUDID = [[aDecoder decodeObjectForKey:@"clientUDID"] retain];
+        clientMACAddress = [[aDecoder decodeObjectForKey:@"clientMACAddress"] retain];
+        clientCrashCount = [[aDecoder decodeObjectForKey:@"clientCrashCount"] retain];
+        
 		parentIndexesStack = [[aDecoder decodeObjectForKey:@"parentIndexes"] retain];
 		filenames = [[aDecoder decodeObjectForKey:@"filenames"] retain];
 		if (filenames == nil)
@@ -401,6 +477,11 @@ char sConnectionAssociatedObjectKey = 1;
 		[aCoder encodeObject:clientDevice forKey:@"clientDevice"];
 	if (clientUDID != nil)
 		[aCoder encodeObject:clientUDID forKey:@"clientUDID"];
+    if (clientMACAddress != nil)
+		[aCoder encodeObject:clientMACAddress forKey:@"clientMACAddress"];
+    if (clientCrashCount != nil)
+		[aCoder encodeObject:clientCrashCount forKey:@"clientCrashCount"];
+    
 	[aCoder encodeObject:filenames forKey:@"filenames"];
 	[aCoder encodeObject:functionNames forKey:@"functionNames"];
 	[aCoder encodeInt:reconnectionCount forKey:@"reconnectionCount"];

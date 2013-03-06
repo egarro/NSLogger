@@ -57,6 +57,9 @@
 		3DE8CEEC12AE50A8005C83D0 /* relaunch in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3DE8CE7812AE4A17005C83D0 /* relaunch */; };
 		3DEE27B712B773D8009ADA67 /* LoggerNativeTransport.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D7C75550F4026D2006B55AD /* LoggerNativeTransport.m */; };
 		4150766516DD764A00E87AF9 /* MMLogSaverController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4150766416DD764A00E87AF9 /* MMLogSaverController.m */; };
+		41F867AA16E6B5DC00775930 /* cellphone_bars.png in Resources */ = {isa = PBXBuildFile; fileRef = 41F867A816E6B5DC00775930 /* cellphone_bars.png */; };
+		41F867AB16E6B5DC00775930 /* wifi_bars.png in Resources */ = {isa = PBXBuildFile; fileRef = 41F867A916E6B5DC00775930 /* wifi_bars.png */; };
+		41F867AD16E7D61700775930 /* crash_bomb.png in Resources */ = {isa = PBXBuildFile; fileRef = 41F867AC16E7D61700775930 /* crash_bomb.png */; };
 		439F14BD1531A492006A5CE3 /* xedReplacement.sh in Resources */ = {isa = PBXBuildFile; fileRef = 439F14BB1531A185006A5CE3 /* xedReplacement.sh */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -194,6 +197,9 @@
 		3DE8CE7812AE4A17005C83D0 /* relaunch */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = relaunch; sourceTree = BUILT_PRODUCTS_DIR; };
 		4150766316DD764900E87AF9 /* MMLogSaverController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MMLogSaverController.h; path = Classes/MM/MMLogSaverController.h; sourceTree = "<group>"; };
 		4150766416DD764A00E87AF9 /* MMLogSaverController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MMLogSaverController.m; path = Classes/MM/MMLogSaverController.m; sourceTree = "<group>"; };
+		41F867A816E6B5DC00775930 /* cellphone_bars.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = cellphone_bars.png; path = Resources/MM/cellphone_bars.png; sourceTree = "<group>"; };
+		41F867A916E6B5DC00775930 /* wifi_bars.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = wifi_bars.png; path = Resources/MM/wifi_bars.png; sourceTree = "<group>"; };
+		41F867AC16E7D61700775930 /* crash_bomb.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = crash_bomb.png; path = Resources/MM/crash_bomb.png; sourceTree = "<group>"; };
 		439F14BB1531A185006A5CE3 /* xedReplacement.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = xedReplacement.sh; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* NSLogger.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NSLogger.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -346,6 +352,9 @@
 		331161E116D2FCE80067FA4B /* MM */ = {
 			isa = PBXGroup;
 			children = (
+				41F867AC16E7D61700775930 /* crash_bomb.png */,
+				41F867A816E6B5DC00775930 /* cellphone_bars.png */,
+				41F867A916E6B5DC00775930 /* wifi_bars.png */,
 				331161EB16D3E2990067FA4B /* MMConnectionManager.xib */,
 				331161E316D2FD9B0067FA4B /* MM_Logo.png */,
 			);
@@ -554,6 +563,9 @@
 				439F14BD1531A492006A5CE3 /* xedReplacement.sh in Resources */,
 				331161E416D2FD9B0067FA4B /* MM_Logo.png in Resources */,
 				331161EC16D3E2990067FA4B /* MMConnectionManager.xib in Resources */,
+				41F867AA16E6B5DC00775930 /* cellphone_bars.png in Resources */,
+				41F867AB16E6B5DC00775930 /* wifi_bars.png in Resources */,
+				41F867AD16E7D61700775930 /* crash_bomb.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

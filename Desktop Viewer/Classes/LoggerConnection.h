@@ -59,6 +59,8 @@
 	NSString *clientOSVersion;
 	NSString *clientDevice;
 	NSString *clientUDID;
+    NSString *clientMACAddress;
+    NSString *clientCrashCount;
 
 	NSMutableSet *filenames;			// pool of unique file names
 	NSMutableSet *functionNames;		// pool of unique function names
@@ -73,6 +75,7 @@
 	BOOL connected;
 	BOOL restoredFromSave;
 	BOOL attachedToWindow;
+    BOOL isWiFi;
 }
 
 @property (retain) id <LoggerConnectionDelegate> delegate;
@@ -83,6 +86,8 @@
 @property (nonatomic, retain) NSString *clientOSVersion;
 @property (nonatomic, retain) NSString *clientDevice;
 @property (nonatomic, retain) NSString *clientUDID;
+@property (nonatomic, retain) NSString *clientMACAddress;
+@property (nonatomic, retain) NSString *clientCrashCount;
 
 @property (nonatomic, readonly) NSData *clientAddress;
 @property (nonatomic, readonly) NSMutableSet *filenames;
@@ -93,6 +98,8 @@
 @property (nonatomic, assign) BOOL connected;
 @property (nonatomic, readonly) BOOL restoredFromSave;
 @property (nonatomic, assign) BOOL attachedToWindow;
+@property (nonatomic, assign) BOOL isWiFi;
+
 @property (nonatomic, readonly) dispatch_queue_t messageProcessingQueue;
 
 - (id)initWithAddress:(NSData *)anAddress;
@@ -107,6 +114,7 @@
 - (NSString *)clientDescription;
 
 - (BOOL)isNewRunOfClient:(LoggerConnection *)aConnection;
+- (BOOL)isReconnectionFromClient:(LoggerConnection *)aConnection;
 
 @end
 

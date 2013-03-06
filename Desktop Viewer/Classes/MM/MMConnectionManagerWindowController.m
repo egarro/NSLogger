@@ -55,6 +55,9 @@
     [disconnectedField setStringValue:@""];
     [idleField setStringValue:@""];
     [totalField setStringValue:@""];
+    [wifiField setStringValue:@""];
+    [cellphoneField setStringValue:@""];
+    [crashField setStringValue:@""];
     
     [greenBullet setImage:[NSImage imageNamed:NSImageNameStatusAvailable]];
     [redBullet setImage:[NSImage imageNamed:NSImageNameStatusUnavailable]];
@@ -104,11 +107,22 @@
 - (IBAction)updateStats:(id)sender {
 
     NSString *selection = [dropMenu titleOfSelectedItem];
+    if([selection isEqualToString:@"All Targets"]) {
+        [searchField setStringValue:@""];
+    }
+    else {
+        [searchField setStringValue:selection];
+    }
+
+    [self controlTextDidChange:nil];
     
     int a = 0;
     int d = 0;
     int i = 0;
     int t = 0;
+    int w = 0;
+    int p = 0;
+    int c = 0;
     
     for (LoggerDocument *document in ((LoggerAppDelegate *)[NSApp delegate]).documents) {
         NSString *target = [document.currentConnection.clientName uppercaseString];
@@ -131,6 +145,14 @@
                     break;
             }
             
+            if (document.currentConnection.isWiFi) {
+                w++;
+            }
+            else {
+                p++;
+            }
+            
+            c += [document.currentConnection.clientCrashCount intValue];
 
             t++;
         }
@@ -141,6 +163,11 @@
     [idleField setStringValue:[NSString stringWithFormat:@"%d",i]];
     [totalField setStringValue:[NSString stringWithFormat:@"%d",t]];
 
+    [wifiField setStringValue:[NSString stringWithFormat:@"%d",w]];
+    [cellphoneField setStringValue:[NSString stringWithFormat:@"%d",p]];
+    [crashField setStringValue:[NSString stringWithFormat:@"%d",c]];
+    
+    
 }
 
 
@@ -170,9 +197,10 @@
     }
     
 	
-    NSString *desc = [NSString stringWithFormat:@"%@ - %@",
+    NSString *desc = [NSString stringWithFormat:@"%@ (%@) @ %@",
                       document.currentConnection.clientName,
-                      document.currentConnection.clientUDID];
+                      document.currentConnection.clientUDID,
+                      document.currentConnection.clientMACAddress];
     NSString *status = [NSString stringWithFormat:@"%@ OS Version: %@ - App Version: %@",
                         document.currentConnection.clientDevice,
                         document.currentConnection.clientOSVersion,
@@ -317,8 +345,8 @@
    	NSArray *documents = ((LoggerAppDelegate *)[NSApp delegate]).documents;
     
     for (LoggerDocument *doc in documents) {
-        NSString *cellTextClean = [NSString stringWithFormat:@"%@ %@",doc.currentConnection.clientName,
-                                   doc.currentConnection.clientUDID];
+        NSString *cellTextClean = [NSString stringWithFormat:@"%@ %@ %@",doc.currentConnection.clientName,
+                                   doc.currentConnection.clientUDID, doc.currentConnection.clientMACAddress];
     
         NSRange aRange = [[cellTextClean uppercaseString] rangeOfString:[searchTerm uppercaseString]];
     

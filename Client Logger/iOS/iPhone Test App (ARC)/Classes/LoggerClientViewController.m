@@ -29,6 +29,7 @@
  * 
  */
 #import "LoggerClientViewController.h"
+#import "UIDeviceAdditions.h"
 
 #define TEST_FILE_BUFFERING 0
 
@@ -42,7 +43,7 @@
 - (void)viewDidLoad
 {
 	[super viewDidLoad];
-	
+    
 	NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
 	viewerHostField.text = [ud stringForKey:@"host"];
 	viewerPortField.text = [ud stringForKey:@"port"];

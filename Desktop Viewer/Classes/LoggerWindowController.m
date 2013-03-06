@@ -528,7 +528,7 @@ static NSArray *sXcodeFileExtensions = nil;
 // -----------------------------------------------------------------------------
 - (NSDictionary *)settingsForClientApplication
 {
-    NSLog(@"settingsForClientApplication");
+
 	NSString *clientAppIdentifier = [attachedConnection clientName];
 	if (![clientAppIdentifier length])
 		return nil;
@@ -579,7 +579,6 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (void)restoreClientApplicationSettings
 {
-    NSLog(@"restoreClientApplicationSettings");
     
 	NSDictionary *clientAppSettings = [self settingsForClientApplication];
 	if (clientAppSettings == nil)
@@ -659,15 +658,10 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (BOOL)windowShouldClose:(id)sender {
     
-        NSLog(@"windowShouldClose: LoggerWindowController");
         return YES;
 
 }
 
--(void)windowWillClose:(NSNotification *)notification {
-
-    NSLog(@"WindowWillClose LoggerWindowController");
-}
 
 // -----------------------------------------------------------------------------
 #pragma mark -
@@ -1915,8 +1909,8 @@ didReceiveMessages:(NSArray *)theMessages
 
 - (IBAction)clearCurrentLog:(id)sender
 {
-    [(LoggerDocument *)[self document] clearLogs];
-	//[(LoggerDocument *)[self document] clearLogs:NO];
+	[(LoggerDocument *)[self document] clearLogs];
+//	[(LoggerDocument *)[self document] clearLogs:NO];
 }
 
 - (BOOL)canClearAllLogs
@@ -1926,8 +1920,8 @@ didReceiveMessages:(NSArray *)theMessages
 
 - (IBAction)clearAllLogs:(id)sender
 {
-    [(LoggerDocument *)[self document] clearLogs];
-	//[(LoggerDocument *)[self document] clearLogs:YES];
+  	[(LoggerDocument *)[self document] clearLogs];
+//    [(LoggerDocument *)[self document] clearLogs:YES];
 }
 
 #pragma mark - 

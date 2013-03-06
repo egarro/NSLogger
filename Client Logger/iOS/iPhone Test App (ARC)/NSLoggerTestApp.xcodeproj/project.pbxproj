@@ -18,6 +18,8 @@
 		3D62642B125223CA00359022 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D62642A125223CA00359022 /* CFNetwork.framework */; };
 		3DA99CB50F10BC160077756A /* LoggerClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DA99CB40F10BC160077756A /* LoggerClient.m */; };
 		3DB964331274C5E60054F72D /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DB964321274C5E50054F72D /* SystemConfiguration.framework */; };
+		41F8678F16E69B5300775930 /* IPAddress.c in Sources */ = {isa = PBXBuildFile; fileRef = 41F8678D16E69B5300775930 /* IPAddress.c */; };
+		41F8679316E69D0600775930 /* UIDeviceAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 41F8679216E69D0600775930 /* UIDeviceAdditions.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +40,10 @@
 		3DA99CB30F10BC160077756A /* LoggerClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LoggerClient.h; path = ../../LoggerClient.h; sourceTree = "<group>"; };
 		3DA99CB40F10BC160077756A /* LoggerClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LoggerClient.m; path = ../../LoggerClient.m; sourceTree = "<group>"; };
 		3DB964321274C5E50054F72D /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
+		41F8678D16E69B5300775930 /* IPAddress.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = IPAddress.c; path = ../../IPAddress.c; sourceTree = "<group>"; };
+		41F8678E16E69B5300775930 /* IPAddress.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IPAddress.h; path = ../../IPAddress.h; sourceTree = "<group>"; };
+		41F8679116E69D0600775930 /* UIDeviceAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UIDeviceAdditions.h; path = ../../UIDeviceAdditions.h; sourceTree = "<group>"; };
+		41F8679216E69D0600775930 /* UIDeviceAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = UIDeviceAdditions.m; path = ../../UIDeviceAdditions.m; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -123,9 +129,13 @@
 		3DAAC60112550D7C000ACF7A /* Logger Client */ = {
 			isa = PBXGroup;
 			children = (
+				41F8678D16E69B5300775930 /* IPAddress.c */,
+				41F8678E16E69B5300775930 /* IPAddress.h */,
 				3D0187E01255D10C009D8545 /* LoggerCommon.h */,
 				3DA99CB30F10BC160077756A /* LoggerClient.h */,
 				3DA99CB40F10BC160077756A /* LoggerClient.m */,
+				41F8679116E69D0600775930 /* UIDeviceAdditions.h */,
+				41F8679216E69D0600775930 /* UIDeviceAdditions.m */,
 			);
 			name = "Logger Client";
 			path = Classes;
@@ -196,6 +206,8 @@
 				1D3623260D0F684500981E51 /* LoggerClientAppDelegate.m in Sources */,
 				28D7ACF80DDB3853001CB0EB /* LoggerClientViewController.m in Sources */,
 				3DA99CB50F10BC160077756A /* LoggerClient.m in Sources */,
+				41F8678F16E69B5300775930 /* IPAddress.c in Sources */,
+				41F8679316E69D0600775930 /* UIDeviceAdditions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

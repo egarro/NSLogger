@@ -45,6 +45,9 @@
     IBOutlet NSTextField *disconnectedField;
     IBOutlet NSTextField *idleField;
     IBOutlet NSTextField *totalField;
+    IBOutlet NSTextField *wifiField;
+    IBOutlet NSTextField *cellphoneField;
+    IBOutlet NSTextField *crashField;
     
     IBOutlet NSPopUpButton *dropMenu;
     IBOutlet NSSearchField *searchField;

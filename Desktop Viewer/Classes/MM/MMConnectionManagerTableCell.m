@@ -41,6 +41,9 @@
 - (void)drawInteriorWithFrame:(NSRect)cellFrame inView:(NSView *)controlView
 {
 
+    NSArray *documents = ((LoggerAppDelegate *)[NSApp delegate]).documents;
+	LoggerDocument *document = [documents objectAtIndex:[[self objectValue] integerValue]];
+    
 	BOOL highlighted = [self isHighlighted];
     
 	// Display status image
@@ -60,19 +63,16 @@
             imgName = NSImageNameStatusNone;
             break;
     }
-    
+
+    CGFloat h = 5.0;
     
 	NSImage *img = [NSImage imageNamed:imgName];
-    
     NSSize sz = [img size];
-    CGFloat w = sz.width + 10;
     
 	if (img != nil)
 	{
-		CGFloat h = sz.height;
-
-		[img drawInRect:NSMakeRect(NSMinX(cellFrame) + floorf((w - sz.width) / 2.0f),
-								   NSMinY(cellFrame) + floorf((NSHeight(cellFrame) - h) / 2.0f),
+		[img drawInRect:NSMakeRect(NSMinX(cellFrame) + 5.0,
+								   NSMinY(cellFrame) + 2*h,
 								   sz.width,
 								   sz.height)
 			   fromRect:NSMakeRect(0, 0, sz.width, sz.height)
@@ -84,6 +84,26 @@
 	}
 
     
+    if (document.currentConnection.isWiFi) imgName = @"wifi_bars.png";
+    else imgName = @"cellphone_bars.png";
+    
+    NSImage *connectionImg = [NSImage imageNamed:imgName];
+    NSSize szConn = NSZeroSize;
+	if (connectionImg != nil) {
+		szConn = [connectionImg size];
+        [connectionImg drawInRect:NSMakeRect(NSMaxX(cellFrame) - szConn.width - 5.0,
+                                      NSMaxY(cellFrame) - szConn.height - 5.0,
+                                      szConn.width,
+                                      szConn.height)
+                  fromRect:NSMakeRect(0, 0, szConn.width, szConn.height)
+                 operation:NSCompositeSourceOver
+                  fraction:1.0f
+            respectFlipped:YES
+                     hints:nil];
+    
+    }
+
+        
 	NSFont *descFont = [NSFont boldSystemFontOfSize:[NSFont systemFontSize]];
 	NSFont *statusFont = [NSFont systemFontOfSize:[NSFont systemFontSize] - 2];
 	
@@ -107,13 +127,49 @@
 	NSSize descSize = [self.desc sizeWithAttributes:descAttrs];
 	NSSize statusSize = [self.status sizeWithAttributes:statusAttrs];
 	
-	CGFloat h = descSize.height + statusSize.height + 2;
+	CGFloat w = sz.width + 10.0;
 	
-	NSRect r = NSMakeRect(NSMinX(cellFrame) + w, NSMinY(cellFrame) + floorf((NSHeight(cellFrame) - h) / 2.0f), NSWidth(cellFrame) - w, descSize.height);
+	NSRect r = NSMakeRect(NSMinX(cellFrame) + w,
+                          NSMinY(cellFrame) + h, NSWidth(cellFrame) - w, descSize.height);
 	[self.desc drawInRect:r withAttributes:descAttrs];
+    
 	r.origin.y += r.size.height + 2;
 	r.size.height = statusSize.height;
-	[self.status drawInRect:r withAttributes:statusAttrs];
+    [self.status drawInRect:r withAttributes:statusAttrs];
+    
+    
+    NSString *crashcount = document.currentConnection.clientCrashCount;
+    if (crashcount != (id)[NSNull null] &&
+        crashcount != nil &&
+        ![crashcount isEqualToString:@""] &&
+        ![crashcount isEqualToString:@" "] &&
+        ![crashcount isEqualToString:@"0"]) {
+        
+        NSImage *crashImg = [NSImage imageNamed:@"crash_bomb.png"];
+        NSSize szCrash = NSZeroSize;
+        if (crashImg != nil) {
+            szCrash = [crashImg size];
+            [crashImg drawInRect:NSMakeRect(NSMaxX(cellFrame) - szConn.width - 5.0 - szCrash.width - 5.0,
+                                                 NSMaxY(cellFrame) - szCrash.height - 5.0,
+                                                 szCrash.width,
+                                                 szCrash.height)
+                             fromRect:NSMakeRect(0, 0, szCrash.width, szCrash.height)
+                            operation:NSCompositeSourceOver
+                             fraction:1.0f
+                       respectFlipped:YES
+                                hints:nil];
+            
+        }
+        
+        NSSize crashSize = [crashcount sizeWithAttributes:descAttrs];
+        
+        r = NSMakeRect(NSMaxX(cellFrame) - szConn.width - 5.0 - szCrash.width - 5.0 - crashSize.width - 5.0,
+                       NSMaxY(cellFrame) - crashSize.height - 10.0, crashSize.width, crashSize.height);
+        
+        [crashcount drawInRect:r withAttributes:descAttrs];
+        
+    }
+    
 }
 
 

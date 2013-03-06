@@ -309,7 +309,7 @@ NSString * const kPref_ApplicationFilterSet = @"appFilterSet";
 			continue;
 		for (LoggerConnection *c in doc.attachedLogs)
 		{
-			if (c != aConnection && [aConnection isNewRunOfClient:c])
+			if (c != aConnection && [aConnection isReconnectionFromClient:c])
 			{
 				// recycle this document window, bring it to front
 				aConnection.reconnectionCount = ((LoggerConnection *)[doc.attachedLogs lastObject]).reconnectionCount + 1;
@@ -320,7 +320,10 @@ NSString * const kPref_ApplicationFilterSet = @"appFilterSet";
 		}
 	}
 
-	// Instantiate a new window for this connection
+
+    //Check the MAC Address of this new incoming connection
+    [aConnection isReconnectionFromClient:nil];
+	// Instantiate a new document for this connection
 	LoggerDocument *doc = [[LoggerDocument alloc] initWithConnection:aConnection];
 	//[docController addDocument:doc];
     //[self.documents addObject:doc];

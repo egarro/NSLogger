@@ -106,7 +106,10 @@
 {
     // since delegate is retained, we need to set it to nil
 	//[attachedLogs makeObjectsPerformSelector:@selector(setDelegate:) withObject:nil];
-	
+    if (self.currentConnection.connected) {
+        [self saveThisLog];
+    }
+
     [super close];
 }
 
@@ -189,7 +192,7 @@
     for (NSWindowController *wc in [self windowControllers])
 	{
         if ([wc isKindOfClass:[LoggerWindowController class]]) {
-            NSLog(@"ATTACHING TO NORMAL");
+
             ((LoggerWindowController *)wc).attachedConnection = currentConnection;
             [wc showWindow:self];
             
@@ -429,6 +432,10 @@
 
 
 - (void)saveThisLog {
+    
+    //Reset Counter;
+    messageCounter = 0;
+    
     //Calculate the path:
     
     if ([[NSUserDefaults standardUserDefaults] boolForKey:kPrefUseConnectionManager]) {
@@ -461,7 +468,7 @@
 
 -(void)saveDidFinish {
     NSLog(@"Save Did Finish");
-    
+    [self flushLogs];
 }
 
 -(void)makeDisconnected {
@@ -537,7 +544,6 @@ didReceiveMessages:(NSArray *)theMessages
     
     if (wc != nil) {
         
-        NSLog(@"Forwarding Message to Visible Window");
         if (wc.attachedConnection == theConnection)
             [wc connection:theConnection didReceiveMessages:theMessages range:rangeInMessagesList];
         
@@ -546,7 +552,6 @@ didReceiveMessages:(NSArray *)theMessages
     
     if (self.saverController != nil) {
 
-        NSLog(@"Forwarding Message to the Disk Writer");
 	if (self.saverController.attachedConnection == theConnection)
 		[self.saverController connection:theConnection didReceiveMessages:theMessages range:rangeInMessagesList];
     
@@ -562,11 +567,8 @@ didReceiveMessages:(NSArray *)theMessages
 
         
         messageCounter += 1;
-        NSLog(@"2 - Getting message %d",messageCounter);
         
         if (messageCounter > maximumMessagesPerLog) {
-            //Reset Counter;
-            messageCounter = 0;
             
             //Perform Log save:
             [self saveThisLog];
@@ -629,19 +631,17 @@ didReceiveMessages:(NSArray *)theMessages
 }
 
 
-#pragma mark MMLogSaverDelegate methods 
-
--(void)clearLogs {
-    NSLog(@"Clear Logs?");
-
+-(void)flushLogs {
+    NSLog(@"Flushing Logs");
+    
     LoggerConnection *connection = [attachedLogs lastObject];
     
-
-		[self willChangeValueForKey:@"attachedLogsPopupNames"];
-		while ([attachedLogs count] > 1)
-			[attachedLogs removeObjectAtIndex:0];
-		connection.reconnectionCount = 0;
-		[self didChangeValueForKey:@"attachedLogsPopupNames"];
+    
+    [self willChangeValueForKey:@"attachedLogsPopupNames"];
+    while ([attachedLogs count] > 1)
+        [attachedLogs removeObjectAtIndex:0];
+    connection.reconnectionCount = 0;
+    [self didChangeValueForKey:@"attachedLogsPopupNames"];
     
 	// Remove all entries from current run log
 	dispatch_async(connection.messageProcessingQueue, ^{
@@ -652,7 +652,14 @@ didReceiveMessages:(NSArray *)theMessages
         //
         //		});
 	});
+    
+}
 
+
+#pragma mark MMLogSaverDelegate methods 
+
+-(void)clearLogs {
+    [self saveThisLog];
 }
 
 -(void)updateClientInfo {

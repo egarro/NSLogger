@@ -46,6 +46,8 @@
 
 #import "LoggerClient.h"
 #import "LoggerCommon.h"
+#import "UIDeviceAdditions.h"
+
 
 /* --------------------------------------------------------------------------------
  * IMPLEMENTATION NOTES:
@@ -2018,6 +2020,7 @@ static void	LoggerPushClientInfoToFrontOfQueue(Logger *logger)
 			LoggerMessageAddString(encoder, (CAST_TO_CFSTRING)device.systemVersion, PART_KEY_OS_VERSION);
 			LoggerMessageAddString(encoder, (CAST_TO_CFSTRING)device.systemName, PART_KEY_OS_NAME);
 			LoggerMessageAddString(encoder, (CAST_TO_CFSTRING)device.model, PART_KEY_CLIENT_MODEL);
+            LoggerMessageAddString(encoder, (CAST_TO_CFSTRING)device.macaddress, PART_KEY_MACADDRESS);
 			AUTORELEASE_POOL_END
 		}
 #elif TARGET_OS_MAC
