@@ -2015,6 +2015,9 @@ static void	LoggerPushClientInfoToFrontOfQueue(Logger *logger)
 		if ([NSThread isMultiThreaded] || [NSThread isMainThread])
 		{
 			AUTORELEASE_POOL_BEGIN
+            
+            NSLog(@"ADDING DEVICE ID");
+            
 			UIDevice *device = [UIDevice currentDevice];
 			LoggerMessageAddString(encoder, (CAST_TO_CFSTRING)device.name, PART_KEY_UNIQUEID);
 			LoggerMessageAddString(encoder, (CAST_TO_CFSTRING)device.systemVersion, PART_KEY_OS_VERSION);
@@ -2059,6 +2062,9 @@ static void	LoggerPushClientInfoToFrontOfQueue(Logger *logger)
 
 static void LoggerPushMessageToQueue(Logger *logger, CFDataRef message)
 {
+    
+                NSLog(@"LoggerPushMessageToQueue");
+    
 	// Add the message to the log queue and signal the runLoop source that will trigger
 	// a send on the worker thread.
 	pthread_mutex_lock(&logger->logQueueMutex);
@@ -2112,6 +2118,8 @@ static void LogMessageTo_internal(Logger *logger,
 								  NSString *format,
 								  va_list args)
 {
+    NSLog(@"LogMessageTo_internal");
+    
 	logger = LoggerStart(logger);	// start if needed
     if (logger != NULL)
 	{
@@ -2122,10 +2130,14 @@ static void LogMessageTo_internal(Logger *logger,
         if (encoder != NULL)
         {
             LoggerMessageAddTimestampAndThreadID(encoder);
+            
+            
             LoggerMessageAddInt32(encoder, LOGMSG_TYPE_LOG, PART_KEY_MESSAGE_TYPE);
             LoggerMessageAddInt32(encoder, seq, PART_KEY_MESSAGE_SEQ);
             if (domain != nil && [domain length])
                 LoggerMessageAddString(encoder, (CAST_TO_CFSTRING)domain, PART_KEY_TAG);
+            
+            
             if (level)
                 LoggerMessageAddInt32(encoder, level, PART_KEY_LEVEL);
             if (filename != NULL)
@@ -2133,8 +2145,9 @@ static void LogMessageTo_internal(Logger *logger,
             if (lineNumber)
                 LoggerMessageAddInt32(encoder, lineNumber, PART_KEY_LINENUMBER);
             if (functionName != NULL)
-                LoggerMessageAddCString(encoder, functionName, PART_KEY_FUNCTIONNAME);
-
+                LoggerMessageAddCString(encoder, functionName, PART_KEY_FUNCTIONNAME);            
+            
+                
 #if ALLOW_COCOA_USE
             // Go though NSString to avoid low-level logging of CF datastructures (i.e. too detailed NSDictionary, etc)
             NSString *msgString = [[NSString alloc] initWithFormat:format arguments:args];
@@ -2151,8 +2164,9 @@ static void LogMessageTo_internal(Logger *logger,
                 CFRelease(msgString);
             }
 #endif
-            
+
             LoggerPushMessageToQueue(logger, encoder);
+            
             CFRelease(encoder);
         }
         else
