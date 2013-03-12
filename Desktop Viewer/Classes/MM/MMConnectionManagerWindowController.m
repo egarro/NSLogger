@@ -37,6 +37,7 @@
 
 @implementation MMConnectionManagerWindowController
 
+@synthesize crashString;
 
 - (void)dealloc
 {
@@ -47,8 +48,17 @@
 	[super dealloc];
 }
 
+
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    
+    [self setCrashLog];
+}
+
 - (void)windowDidLoad
 {
+    
+    
 	documentStatusCell = [[MMConnectionManagerTableCell alloc] init];
 	
     [activeField setStringValue:@""];
@@ -79,6 +89,24 @@
 		[statusTable reloadData];
         [self fetchAllTargets];
 	});
+}
+
+
+-(void)setCrashString:(NSString *)aString {    
+    crashString = aString;
+    [self setCrashLog];
+}
+
+
+-(void)setCrashLog {
+    
+    if (crashString != nil ) {
+        [crashLog setString:crashString];
+    }
+    else {
+        [crashLog setString:@""];
+    }
+    
 }
 
 
@@ -289,9 +317,17 @@
 
 }
 
+- (IBAction)clearCrashLog:(id)sender {
+
+   self.crashString = @"";
+    
+}
+
 - (void)deselectTableRow:(NSNumber *)aRow {
     [statusTable deselectRow:[aRow integerValue]];
 }
+
+
 
 // -----------------------------------------------------------------------------
 #pragma mark -

@@ -49,6 +49,10 @@
     IBOutlet NSTextField *cellphoneField;
     IBOutlet NSTextField *crashField;
     
+    NSString *crashString;
+    IBOutlet NSTextView *crashLog;
+    
+    
     IBOutlet NSPopUpButton *dropMenu;
     IBOutlet NSSearchField *searchField;
     
@@ -59,11 +63,12 @@
         BOOL isSearching;
 }
 
-
+@property (nonatomic, retain) NSString *crashString;
 
 - (IBAction)tableViewDidSelectRow:(id)sender;
 - (IBAction)updateStats:(id)sender;
+- (IBAction)clearCrashLog:(id)sender;
 - (void)reloadTable;
-
+- (void)setCrashLog;
 
 @end

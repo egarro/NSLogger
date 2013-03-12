@@ -72,6 +72,7 @@
 	dispatch_queue_t messageProcessingQueue;
 
 	int reconnectionCount;				// when a reconnection is detected (same client, disconnects then reconnects), the # reconnection for this connection
+    
 	BOOL connected;
 	BOOL restoredFromSave;
 	BOOL attachedToWindow;
@@ -95,6 +96,7 @@
 
 @property (nonatomic, readonly) NSMutableArray *messages;
 @property (nonatomic, assign) int reconnectionCount;
+
 @property (nonatomic, assign) BOOL connected;
 @property (nonatomic, readonly) BOOL restoredFromSave;
 @property (nonatomic, assign) BOOL attachedToWindow;

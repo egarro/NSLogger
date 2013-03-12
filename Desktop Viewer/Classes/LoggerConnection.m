@@ -120,23 +120,29 @@ char sConnectionAssociatedObjectKey = 1;
     
     
     if (resp) {
-        if (clientMACAddress != nil) {
+        if (clientMACAddress != nil &&
+            [clientMACAddress rangeOfString:@":"].location != NSNotFound) {
             isWiFi = YES;
-            if (aConnection.clientMACAddress == nil)  {
+            if (aConnection.clientMACAddress != nil &&
+                [aConnection.clientMACAddress rangeOfString:@":"].location != NSNotFound)  {
                 
-                aConnection.clientMACAddress = clientMACAddress;
-                aConnection.isWiFi = NO;
-            }
-            else {
                 aConnection.isWiFi = YES;
                 if (!isSame(clientMACAddress, aConnection.clientMACAddress)) {
                     resp = NO;
                 }
+                
+            }
+            else {
+                
+                aConnection.clientMACAddress = clientMACAddress;
+                aConnection.isWiFi = NO;
+    
             }
         }
         else {
             isWiFi = NO;
-            if (aConnection.clientMACAddress != nil)  {
+            if (aConnection.clientMACAddress != nil &&
+                [aConnection.clientMACAddress rangeOfString:@":"].location != NSNotFound)  {
                 
                 clientMACAddress = aConnection.clientMACAddress;
                 aConnection.isWiFi = YES;
@@ -145,14 +151,33 @@ char sConnectionAssociatedObjectKey = 1;
                 aConnection.isWiFi = NO;
             }
         }
+        
+        
+        int newCrashCount = [clientCrashCount intValue];
+        int oldCrashCount = [aConnection.clientCrashCount intValue];
+        if (newCrashCount > oldCrashCount) {
+            aConnection.clientCrashCount = clientCrashCount;
+            //Notifiy about the change!!
+            NSDateFormatter* dateFormatter = [[NSDateFormatter alloc] init];
+            [dateFormatter setDateFormat:@"dd-MM-yyyy @ hh:mm:ss"];
+            NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
+            
+            NSString *note =[dateString stringByAppendingFormat:@" %@ on iOS %@ CRASHED (%d)!!\n%@ %@ @ %@", clientName, clientVersion, newCrashCount, clientDevice, clientUDID, clientMACAddress];
+            
+            [((LoggerAppDelegate *)[NSApp delegate]).statusController appendStringToCrashLog:note];
+            
+        }
+        
     }
     else {
-        if (clientMACAddress != nil) {
+        if (clientMACAddress != nil &&
+            [clientMACAddress rangeOfString:@":"].location != NSNotFound) {
             isWiFi = YES;
         }
         else {
             isWiFi = NO;
         }
+        
     
     }
     
@@ -454,6 +479,7 @@ char sConnectionAssociatedObjectKey = 1;
 		objc_setAssociatedObject(aDecoder, &sConnectionAssociatedObjectKey, self, OBJC_ASSOCIATION_ASSIGN);
 		messages = [[aDecoder decodeObjectForKey:@"messages"] retain];
 		reconnectionCount = [aDecoder decodeIntForKey:@"reconnectionCount"];
+        
 		restoredFromSave = YES;
 		
 		// we need a messageProcessingQueue just for the ability to add/insert marks
@@ -485,6 +511,7 @@ char sConnectionAssociatedObjectKey = 1;
 	[aCoder encodeObject:filenames forKey:@"filenames"];
 	[aCoder encodeObject:functionNames forKey:@"functionNames"];
 	[aCoder encodeInt:reconnectionCount forKey:@"reconnectionCount"];
+    
 	@synchronized (messages)
 	{
 		[aCoder encodeObject:messages forKey:@"messages"];

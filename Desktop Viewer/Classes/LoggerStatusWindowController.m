@@ -40,10 +40,12 @@ NSString * const kShowStatusInStatusWindowNotification = @"ShowStatusInStatusWin
 @implementation LoggerStatusWindowController
 
 @synthesize connectionController;
+@synthesize crashString;
 
 - (void)dealloc
 {
 	[transportStatusCell release];
+    [crashString release];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[super dealloc];
 }
@@ -52,6 +54,7 @@ NSString * const kShowStatusInStatusWindowNotification = @"ShowStatusInStatusWin
 {
 	transportStatusCell = [[LoggerTransportStatusCell alloc] init];
     connectionController = nil;
+    self.crashString = @"";
     
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(showStatus:)
@@ -60,6 +63,22 @@ NSString * const kShowStatusInStatusWindowNotification = @"ShowStatusInStatusWin
 	
 	[[self window] setLevel:NSNormalWindowLevel];
 }
+
+-(void)appendStringToCrashLog:(NSString *)aString {
+    
+    
+    if (aString != (id)[NSNull null] &&
+        aString != nil) {
+
+        self.crashString = [aString stringByAppendingFormat:@"\n%@",self.crashString];
+    }
+    
+    if (connectionController != nil) {
+        [connectionController setCrashString:crashString];
+
+    }
+}
+
 
 - (void)showStatus:(NSNotification *)notification
 {
@@ -119,6 +138,7 @@ NSString * const kShowStatusInStatusWindowNotification = @"ShowStatusInStatusWin
  
                 connectionController = [[MMConnectionManagerWindowController alloc] initWithWindowNibName:@"MMConnectionManager"];
                 NSRect frame = connectionController.window.frame;
+                [connectionController setCrashString:self.crashString];
                 
                 frame.origin.x = self.window.frame.origin.x - frame.size.width;
                 frame.origin.y = self.window.frame.origin.y;

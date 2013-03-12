@@ -40,11 +40,13 @@
     
     //MM ADDITION POINT
     MMConnectionManagerWindowController *connectionController;
+    NSString *crashString;
 }
 
 @property (nonatomic, readonly) MMConnectionManagerWindowController *connectionController;
+@property (nonatomic, copy) NSString *crashString;
 
-
+- (void)appendStringToCrashLog:(NSString *)aString;
 - (IBAction)tableViewDidSelectRow:(id)sender;
 - (void)reloadSubtable;
 
