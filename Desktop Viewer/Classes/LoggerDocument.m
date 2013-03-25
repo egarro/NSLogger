@@ -611,11 +611,13 @@ didReceiveMessages:(NSArray *)theMessages
     
     if (self.saverController != nil) {
         
+        [self saveThisLog];
+        
         if (self.saverController.attachedConnection == theConnection)
             [self.saverController remoteDisconnected:theConnection];
     
-        [self saveThisLog];
     }
+    
     
     [self makeDisconnected];
     LoggerWindowController *wc = [self mainWindowController];
