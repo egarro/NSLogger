@@ -34,6 +34,8 @@
 #import "LoggerMessage.h"
 #import "LoggerMessageCell.h"
 
+#import "NSStringAdditions.h"
+
 @implementation LoggerDetailsWindowController
 
 - (void)dealloc
@@ -91,8 +93,23 @@
 			NSMutableArray *strings = [[NSMutableArray alloc] initWithCapacity:range.length];
 			for (LoggerMessage *msg in [messages subarrayWithRange:range])
 			{
-				NSAttributedString *as = [[NSAttributedString alloc] initWithString:[msg textRepresentation]
-																		 attributes:(msg.contentsType == kMessageString) ? textAttributes : dataAttributes];
+                NSString *tmp = [msg textRepresentation];
+                NSAttributedString *as;
+                if ([tmp rangeOfString:@" | secure | "].location != NSNotFound) {
+                    //This message is encrypted, decrypt it:
+                    NSString *encryptedString = [[tmp componentsSeparatedByString:@" | "] objectAtIndex:3];
+                    //Decrypt this shit:
+                    NSString *decodedMessage = [encryptedString babyDecrypt];
+                    tmp = [tmp stringByReplacingOccurrencesOfString:encryptedString withString:decodedMessage];
+                    as = [[NSAttributedString alloc] initWithString:tmp
+                                                         attributes:(msg.contentsType == kMessageString) ? textAttributes : dataAttributes];
+                    
+                }
+                else {
+                    as = [[NSAttributedString alloc] initWithString:[msg textRepresentation]
+                                                                             attributes:(msg.contentsType == kMessageString) ? textAttributes : dataAttributes];
+                }
+
 				[strings addObject:as];
 				[as release];
 			}

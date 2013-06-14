@@ -57,6 +57,10 @@
 		3DE8CEEC12AE50A8005C83D0 /* relaunch in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3DE8CE7812AE4A17005C83D0 /* relaunch */; };
 		3DEE27B712B773D8009ADA67 /* LoggerNativeTransport.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D7C75550F4026D2006B55AD /* LoggerNativeTransport.m */; };
 		4150766516DD764A00E87AF9 /* MMLogSaverController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4150766416DD764A00E87AF9 /* MMLogSaverController.m */; };
+		41D5FF28176BD2FB00BFEB7C /* EncryptionController.m in Sources */ = {isa = PBXBuildFile; fileRef = 41D5FF25176BD2FB00BFEB7C /* EncryptionController.m */; };
+		41D5FF29176BD2FB00BFEB7C /* NSData+Encryption.m in Sources */ = {isa = PBXBuildFile; fileRef = 41D5FF27176BD2FB00BFEB7C /* NSData+Encryption.m */; };
+		41D5FF2C176BD31C00BFEB7C /* NSStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 41D5FF2B176BD31C00BFEB7C /* NSStringAdditions.m */; };
+		41D5FF2F176BD45000BFEB7C /* Encode.m in Sources */ = {isa = PBXBuildFile; fileRef = 41D5FF2E176BD45000BFEB7C /* Encode.m */; };
 		41F867AA16E6B5DC00775930 /* cellphone_bars.png in Resources */ = {isa = PBXBuildFile; fileRef = 41F867A816E6B5DC00775930 /* cellphone_bars.png */; };
 		41F867AB16E6B5DC00775930 /* wifi_bars.png in Resources */ = {isa = PBXBuildFile; fileRef = 41F867A916E6B5DC00775930 /* wifi_bars.png */; };
 		41F867AD16E7D61700775930 /* crash_bomb.png in Resources */ = {isa = PBXBuildFile; fileRef = 41F867AC16E7D61700775930 /* crash_bomb.png */; };
@@ -197,6 +201,15 @@
 		3DE8CE7812AE4A17005C83D0 /* relaunch */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = relaunch; sourceTree = BUILT_PRODUCTS_DIR; };
 		4150766316DD764900E87AF9 /* MMLogSaverController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MMLogSaverController.h; path = Classes/MM/MMLogSaverController.h; sourceTree = "<group>"; };
 		4150766416DD764A00E87AF9 /* MMLogSaverController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MMLogSaverController.m; path = Classes/MM/MMLogSaverController.m; sourceTree = "<group>"; };
+		41A4C0E71769199300452903 /* NSLogger.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = NSLogger.entitlements; sourceTree = "<group>"; };
+		41D5FF24176BD2FB00BFEB7C /* EncryptionController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EncryptionController.h; sourceTree = "<group>"; };
+		41D5FF25176BD2FB00BFEB7C /* EncryptionController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EncryptionController.m; sourceTree = "<group>"; };
+		41D5FF26176BD2FB00BFEB7C /* NSData+Encryption.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+Encryption.h"; sourceTree = "<group>"; };
+		41D5FF27176BD2FB00BFEB7C /* NSData+Encryption.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSData+Encryption.m"; sourceTree = "<group>"; };
+		41D5FF2A176BD31C00BFEB7C /* NSStringAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSStringAdditions.h; sourceTree = "<group>"; };
+		41D5FF2B176BD31C00BFEB7C /* NSStringAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSStringAdditions.m; sourceTree = "<group>"; };
+		41D5FF2D176BD44F00BFEB7C /* Encode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Encode.h; sourceTree = "<group>"; };
+		41D5FF2E176BD45000BFEB7C /* Encode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Encode.m; sourceTree = "<group>"; };
 		41F867A816E6B5DC00775930 /* cellphone_bars.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = cellphone_bars.png; path = Resources/MM/cellphone_bars.png; sourceTree = "<group>"; };
 		41F867A916E6B5DC00775930 /* wifi_bars.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = wifi_bars.png; path = Resources/MM/wifi_bars.png; sourceTree = "<group>"; };
 		41F867AC16E7D61700775930 /* crash_bomb.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = crash_bomb.png; path = Resources/MM/crash_bomb.png; sourceTree = "<group>"; };
@@ -293,6 +306,7 @@
 		29B97314FDCFA39411CA2CEA /* NSLogger */ = {
 			isa = PBXGroup;
 			children = (
+				41A4C0E71769199300452903 /* NSLogger.entitlements */,
 				3D24C3FD1256387900435837 /* BWToolkit.xcodeproj */,
 				439F14BB1531A185006A5CE3 /* xedReplacement.sh */,
 				3D65635B13EDA75800004DB6 /* Third Party */,
@@ -352,6 +366,14 @@
 		331161E116D2FCE80067FA4B /* MM */ = {
 			isa = PBXGroup;
 			children = (
+				41D5FF2D176BD44F00BFEB7C /* Encode.h */,
+				41D5FF2E176BD45000BFEB7C /* Encode.m */,
+				41D5FF2A176BD31C00BFEB7C /* NSStringAdditions.h */,
+				41D5FF2B176BD31C00BFEB7C /* NSStringAdditions.m */,
+				41D5FF24176BD2FB00BFEB7C /* EncryptionController.h */,
+				41D5FF25176BD2FB00BFEB7C /* EncryptionController.m */,
+				41D5FF26176BD2FB00BFEB7C /* NSData+Encryption.h */,
+				41D5FF27176BD2FB00BFEB7C /* NSData+Encryption.m */,
 				41F867AC16E7D61700775930 /* crash_bomb.png */,
 				41F867A816E6B5DC00775930 /* cellphone_bars.png */,
 				41F867A916E6B5DC00775930 /* wifi_bars.png */,
@@ -629,6 +651,10 @@
 				331161E716D3DEA30067FA4B /* MMConnectionManagerTableCell.m in Sources */,
 				331161EA16D3DEBF0067FA4B /* MMConnectionManagerWindowController.m in Sources */,
 				4150766516DD764A00E87AF9 /* MMLogSaverController.m in Sources */,
+				41D5FF28176BD2FB00BFEB7C /* EncryptionController.m in Sources */,
+				41D5FF29176BD2FB00BFEB7C /* NSData+Encryption.m in Sources */,
+				41D5FF2C176BD31C00BFEB7C /* NSStringAdditions.m in Sources */,
+				41D5FF2F176BD45000BFEB7C /* Encode.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -693,11 +719,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CODE_SIGN_IDENTITY = "iPhone Developer: David Engel (UVRJGG3J6Y)";
+				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = NSLogger_Prefix.pch;
 				HEADER_SEARCH_PATHS = (
@@ -705,8 +731,8 @@
 				);
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				PRODUCT_NAME = NSLogger;
-				PROVISIONING_PROFILE = "37719CFE-3189-4F88-AF02-A8AAFD703F01";
 			};
 			name = Debug;
 		};
@@ -714,9 +740,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CODE_SIGN_IDENTITY = "iPhone Developer: David Engel (UVRJGG3J6Y)";
+				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = NSLogger_Prefix.pch;
 				HEADER_SEARCH_PATHS = (
@@ -724,8 +751,8 @@
 				);
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				PRODUCT_NAME = NSLogger;
-				PROVISIONING_PROFILE = "37719CFE-3189-4F88-AF02-A8AAFD703F01";
 			};
 			name = Release;
 		};

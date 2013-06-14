@@ -698,7 +698,7 @@
 				INFOPLIST_FILE = "BWToolkitFramework-Info.plist";
 				INSTALL_PATH = "@loader_path/../Frameworks";
 				PRODUCT_NAME = BWToolkitFramework;
-				SKIP_INSTALL = NO;
+				SKIP_INSTALL = YES;
 			};
 			name = Debug;
 		};
@@ -711,7 +711,7 @@
 				INSTALL_MODE_FLAG = "go-w,a+rX";
 				INSTALL_PATH = "@loader_path/../Frameworks";
 				PRODUCT_NAME = BWToolkitFramework;
-				SKIP_INSTALL = NO;
+				SKIP_INSTALL = YES;
 			};
 			name = Release;
 		};
