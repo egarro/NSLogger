@@ -32,7 +32,7 @@
 #import "BWToolkitFramework.h"
 
 @class LoggerMessageCell, LoggerClientInfoCell, LoggerMarkerCell, LoggerTableView, LoggerSplitView;
-@class LoggerDetailsWindowController;
+@class LoggerDetailsWindowController, LoggerImageDetailWindowController;
 
 @interface LoggerWindowController : NSWindowController <NSWindowDelegate, LoggerConnectionDelegate, NSTableViewDataSource, NSTableViewDelegate>
 {
@@ -57,6 +57,7 @@
 
 	LoggerConnection *attachedConnection;
 	LoggerDetailsWindowController *detailsWindowController;
+    LoggerImageDetailWindowController *imageDetailWindowController;
 
 	LoggerMessageCell *messageCell;
 	LoggerClientInfoCell *clientInfoCell;

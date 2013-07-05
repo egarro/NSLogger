@@ -57,6 +57,8 @@
 		3DE8CEEC12AE50A8005C83D0 /* relaunch in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3DE8CE7812AE4A17005C83D0 /* relaunch */; };
 		3DEE27B712B773D8009ADA67 /* LoggerNativeTransport.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D7C75550F4026D2006B55AD /* LoggerNativeTransport.m */; };
 		4150766516DD764A00E87AF9 /* MMLogSaverController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4150766416DD764A00E87AF9 /* MMLogSaverController.m */; };
+		41C2034B17860F8000F51C1B /* LoggerImageDetailWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 41C2034A17860F8000F51C1B /* LoggerImageDetailWindowController.m */; };
+		41C2034E1786111900F51C1B /* LoggerImageWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 41C2034D1786111900F51C1B /* LoggerImageWindow.xib */; };
 		41D5FF28176BD2FB00BFEB7C /* EncryptionController.m in Sources */ = {isa = PBXBuildFile; fileRef = 41D5FF25176BD2FB00BFEB7C /* EncryptionController.m */; };
 		41D5FF29176BD2FB00BFEB7C /* NSData+Encryption.m in Sources */ = {isa = PBXBuildFile; fileRef = 41D5FF27176BD2FB00BFEB7C /* NSData+Encryption.m */; };
 		41D5FF2C176BD31C00BFEB7C /* NSStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 41D5FF2B176BD31C00BFEB7C /* NSStringAdditions.m */; };
@@ -202,6 +204,9 @@
 		4150766316DD764900E87AF9 /* MMLogSaverController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MMLogSaverController.h; path = Classes/MM/MMLogSaverController.h; sourceTree = "<group>"; };
 		4150766416DD764A00E87AF9 /* MMLogSaverController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MMLogSaverController.m; path = Classes/MM/MMLogSaverController.m; sourceTree = "<group>"; };
 		41A4C0E71769199300452903 /* NSLogger.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = NSLogger.entitlements; sourceTree = "<group>"; };
+		41C2034917860F8000F51C1B /* LoggerImageDetailWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LoggerImageDetailWindowController.h; path = Classes/LoggerImageDetailWindowController.h; sourceTree = "<group>"; };
+		41C2034A17860F8000F51C1B /* LoggerImageDetailWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LoggerImageDetailWindowController.m; path = Classes/LoggerImageDetailWindowController.m; sourceTree = "<group>"; };
+		41C2034D1786111900F51C1B /* LoggerImageWindow.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = LoggerImageWindow.xib; path = Resources/LoggerImageWindow.xib; sourceTree = "<group>"; };
 		41D5FF24176BD2FB00BFEB7C /* EncryptionController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EncryptionController.h; sourceTree = "<group>"; };
 		41D5FF25176BD2FB00BFEB7C /* EncryptionController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EncryptionController.m; sourceTree = "<group>"; };
 		41D5FF26176BD2FB00BFEB7C /* NSData+Encryption.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+Encryption.h"; sourceTree = "<group>"; };
@@ -258,6 +263,8 @@
 				3D6A34691262F60400D0EC3A /* LoggerDocument.m */,
 				3D65635313ED9C6500004DB6 /* LoggerDocumentController.h */,
 				3D65635413ED9C6600004DB6 /* LoggerDocumentController.m */,
+				41C2034917860F8000F51C1B /* LoggerImageDetailWindowController.h */,
+				41C2034A17860F8000F51C1B /* LoggerImageDetailWindowController.m */,
 				3DE01E921268D32100A39E7E /* LoggerDetailsWindowController.h */,
 				3DE01E931268D32100A39E7E /* LoggerDetailsWindowController.m */,
 				3D027B2D12663E3F00E6F241 /* LoggerPrefsWindowController.h */,
@@ -346,6 +353,7 @@
 				3D6A34A71262FD5500D0EC3A /* MainMenu.xib */,
 				3D6A37C8126399D700D0EC3A /* LoggerStatus.xib */,
 				3D6A34A51262FD5500D0EC3A /* LoggerWindow.xib */,
+				41C2034D1786111900F51C1B /* LoggerImageWindow.xib */,
 				3D027B2B12663E1200E6F241 /* LoggerPrefs.xib */,
 				3DE01E8F1268D30C00A39E7E /* LoggerDetailsWindow.xib */,
 				3D8E078013097D6E0024917B /* ssl_badge.png */,
@@ -588,6 +596,7 @@
 				41F867AA16E6B5DC00775930 /* cellphone_bars.png in Resources */,
 				41F867AB16E6B5DC00775930 /* wifi_bars.png in Resources */,
 				41F867AD16E7D61700775930 /* crash_bomb.png in Resources */,
+				41C2034E1786111900F51C1B /* LoggerImageWindow.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -655,6 +664,7 @@
 				41D5FF29176BD2FB00BFEB7C /* NSData+Encryption.m in Sources */,
 				41D5FF2C176BD31C00BFEB7C /* NSStringAdditions.m in Sources */,
 				41D5FF2F176BD45000BFEB7C /* Encode.m in Sources */,
+				41C2034B17860F8000F51C1B /* LoggerImageDetailWindowController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

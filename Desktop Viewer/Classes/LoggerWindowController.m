@@ -30,6 +30,7 @@
  */
 #import <sys/time.h>
 #import "LoggerWindowController.h"
+#import "LoggerImageDetailWindowController.h"
 #import "LoggerDetailsWindowController.h"
 #import "LoggerMessageCell.h"
 #import "LoggerClientInfoCell.h"
@@ -817,15 +818,51 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (IBAction)openDetailsWindow:(id)sender
 {
-	// open a details view window for the selected messages
-	if (detailsWindowController == nil)
-	{
-		detailsWindowController = [[LoggerDetailsWindowController alloc] initWithWindowNibName:@"LoggerDetailsWindow"];
-		[detailsWindowController window];	// force window to load
-		[[self document] addWindowController:detailsWindowController];
-	}
-	[detailsWindowController setMessages:[displayedMessages objectsAtIndexes:[logTable selectedRowIndexes]]];
-	[detailsWindowController showWindow:self];
+    NSArray *tmp = [displayedMessages objectsAtIndexes:[logTable selectedRowIndexes]];
+
+	LoggerMessage *msg = (LoggerMessage *)[tmp objectAtIndex:0];
+    NSRange aRange = [msg.textRepresentation rangeOfString:@"IMAGE size="];
+    
+    if(aRange.location != NSNotFound) {
+        //We have an image:
+        NSImage *anImage = msg.image;
+       
+        // open an image detail view window for the selected image
+        if (imageDetailWindowController == nil)
+        {
+            imageDetailWindowController = [[LoggerImageDetailWindowController alloc] initWithWindowNibName:@"LoggerImageWindow"];
+            [imageDetailWindowController window];	// force window to load
+            [[self document] addWindowController:imageDetailWindowController];
+        }
+        
+        float offset = anImage.size.height - 125.0;
+        if (offset > 0) {
+            //Modify the size of the window to fit this image:
+            [imageDetailWindowController.window setFrame:NSRectFromCGRect(CGRectMake(imageDetailWindowController.window.frame.origin.x,
+                                                                                     imageDetailWindowController.window.frame.origin.y,
+                                                                                     imageDetailWindowController.window.frame.size.width,
+                                                                                     imageDetailWindowController.window.frame.size.height + offset))
+                                                 display:YES];
+            [imageDetailWindowController.theImage setFrameSize:(NSSize){imageDetailWindowController.window.frame.size.width - 10.0,imageDetailWindowController.theImage.frame.size.height + offset}];
+        }
+        
+        [imageDetailWindowController setImage:anImage withInfo:msg.textRepresentation];
+        [imageDetailWindowController showWindow:self];
+        
+    }
+    else {
+    
+        // open a details view window for the selected messages
+        if (detailsWindowController == nil)
+        {
+            detailsWindowController = [[LoggerDetailsWindowController alloc] initWithWindowNibName:@"LoggerDetailsWindow"];
+            [detailsWindowController window];	// force window to load
+            [[self document] addWindowController:detailsWindowController];
+        }
+            [detailsWindowController setMessages:[displayedMessages objectsAtIndexes:[logTable selectedRowIndexes]]];
+            [detailsWindowController showWindow:self];
+    }
+    
 }
 
 - (void)xedFile:(NSString *)path line:(NSString *)line { 

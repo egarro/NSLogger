@@ -9,6 +9,7 @@
 
 @interface NSString (myAdditions)
 
++ (NSString*)base64forData:(NSData*)theData;
 - (NSString *)babyDecrypt;
 
 @end
