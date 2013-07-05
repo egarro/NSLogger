@@ -292,7 +292,7 @@ NSString * const kPref_ApplicationFilterSet = @"appFilterSet";
 - (void)newConnection:(LoggerConnection *)aConnection fromTransport:(LoggerTransport *)aTransport
 {
     
-    NSLog(@"LoggerAppDelegate newConnection:fromTransport");
+    NSLog(@"LoggerAppDelegate newConnection:fromTransport: %@, with status:%@",aTransport.transportInfoString,aTransport.transportStatusString);
     
 	// we are being called on the main thread (using dispatch_sync() from transport, so take care)
 	assert([NSThread isMainThread]);

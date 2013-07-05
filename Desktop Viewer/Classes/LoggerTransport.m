@@ -57,7 +57,16 @@
 
 - (void)addConnection:(LoggerConnection *)aConnection
 {
-    NSLog(@"Adding a connection to the transport");
+    NSLog(@"Connection entry point:");
+    
+    for (LoggerConnection *existingConnection in connections) {
+        if ([existingConnection isReconnectionFromClient:aConnection]) {
+            int count = existingConnection.reconnectionCount + 1;
+            [self removeConnection:existingConnection];
+            aConnection.reconnectionCount = count;
+        }
+    }
+    
 	[connections addObject:aConnection];
 }
 

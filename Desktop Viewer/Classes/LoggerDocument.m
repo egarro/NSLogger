@@ -157,6 +157,7 @@
 		{
             NSLog(@"Removing previous connections!");
 			while ([attachedLogs count] > 1)
+                
 				[attachedLogs removeObjectAtIndex:0];
 		}
 		[self didChangeValueForKey:@"attachedLogsPopupNames"];

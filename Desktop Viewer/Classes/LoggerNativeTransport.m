@@ -37,6 +37,7 @@
 #import "LoggerNativeMessage.h"
 #import "LoggerStatusWindowController.h"
 #import "LoggerAppDelegate.h"
+#import "LoggerDocument.h"
 
 /* Local prototypes */
 static void AcceptSocketCallback(CFSocketRef sock, CFSocketCallBackType type, CFDataRef address, const void *data, void *info);
@@ -86,17 +87,19 @@ static void AcceptSocketCallback(CFSocketRef sock, CFSocketCallBackType type, CF
 	if (active && ready)
 	{
 		__block NSInteger numConnected = 0;
-		[connections enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+		
+        [connections enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
 			if (((LoggerConnection *)obj).connected)
-				numConnected++;
+                numConnected++;
 		}];
 
 		if (numConnected == 0)
-			return NSLocalizedString(@"Ready to accept connections", @"Transport ready status");
+			return @"Ready to accept connections";
 		if (numConnected == 1)
-			return NSLocalizedString(@"1 active connection", @"1 active connection for transport");
-		return [NSString stringWithFormat:NSLocalizedString(@"%d active connections", @"Number of active connections for transport"), numConnected];
+			return @"1 active or idle connection";
+		return [NSString stringWithFormat:@"%d active or idle connections", numConnected];
 	}
+    
 	if (active)
 		return NSLocalizedString(@"Opening service", @"Transport status: opening");
 	return NSLocalizedString(@"Unavailable", @"Transport status: service unavailable");
