@@ -322,7 +322,13 @@ NSString * const kPref_ApplicationFilterSet = @"appFilterSet";
 
 
     //Check the MAC Address of this new incoming connection
-    [aConnection isReconnectionFromClient:nil];
+    if (aConnection.clientMACAddress != nil &&
+        [aConnection.clientMACAddress rangeOfString:@":"].location != NSNotFound) {
+        aConnection.isWiFi = YES;
+    }
+    else {
+        aConnection.isWiFi = NO;
+    }
 	// Instantiate a new document for this connection
 	LoggerDocument *doc = [[LoggerDocument alloc] initWithConnection:aConnection];
 	//[docController addDocument:doc];
