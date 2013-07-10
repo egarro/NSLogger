@@ -1153,10 +1153,12 @@ static NSArray *sXcodeFileExtensions = nil;
 
 - (NSNumber *)shouldEnableRunsPopup
 {
-	NSUInteger numRuns = [((LoggerDocument *)[self document]).attachedLogs count];
-	if (![[NSUserDefaults standardUserDefaults] boolForKey:kPrefKeepMultipleRuns] && numRuns <= 1)
-		return (id)kCFBooleanFalse;
-	return (id)kCFBooleanTrue;
+//	NSUInteger numRuns = [((LoggerDocument *)[self document]).attachedLogs count];
+//	if (![[NSUserDefaults standardUserDefaults] boolForKey:kPrefKeepMultipleRuns] && numRuns <= 1)
+//		return (id)kCFBooleanFalse;
+//	return (id)kCFBooleanTrue;
+
+    return (id)kCFBooleanFalse;
 }
 
 - (void)setFilterString:(NSString *)newString

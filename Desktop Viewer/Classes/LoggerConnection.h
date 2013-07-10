@@ -38,6 +38,8 @@
 @protocol LoggerConnectionDelegate
 // method that may not be called on main thread
 - (void)connection:(LoggerConnection *)theConnection didReceiveMessages:(NSArray *)theMessages range:(NSRange)rangeInMessagesList;
+@optional
+- (void)updateClientInfo;
 @end
 
 @interface NSObject (LoggerConnectionDelegateOptional)
@@ -61,6 +63,7 @@
 	NSString *clientUDID;
     NSString *clientMACAddress;
     NSString *clientCrashCount;
+    NSString *clientConnection;         //one of @"NOCONNECTION", @"WIFI", @"3G", or @"UNKNOWN";
 
 	NSMutableSet *filenames;			// pool of unique file names
 	NSMutableSet *functionNames;		// pool of unique function names
@@ -76,7 +79,7 @@
 	BOOL connected;
 	BOOL restoredFromSave;
 	BOOL attachedToWindow;
-    BOOL isWiFi;
+    BOOL _isWiFi;
 }
 
 @property (retain) id <LoggerConnectionDelegate> delegate;
@@ -89,6 +92,8 @@
 @property (nonatomic, retain) NSString *clientUDID;
 @property (nonatomic, retain) NSString *clientMACAddress;
 @property (nonatomic, retain) NSString *clientCrashCount;
+@property (nonatomic, retain) NSString *clientConnection;
+
 
 @property (nonatomic, readonly) NSData *clientAddress;
 @property (nonatomic, readonly) NSMutableSet *filenames;

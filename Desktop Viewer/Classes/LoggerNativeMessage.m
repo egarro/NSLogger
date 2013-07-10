@@ -30,6 +30,7 @@
  */
 #import "LoggerNativeMessage.h"
 #import "LoggerCommon.h"
+#import "LoggerConnection.h"
 
 @implementation LoggerNativeMessage
 
@@ -123,8 +124,19 @@
 					break;
 				case PART_KEY_MESSAGE:
 					self.message = part;
-					if (partType == PART_TYPE_STRING)
+					if (partType == PART_TYPE_STRING) {
 						contentsType = kMessageString;
+                        if ([[self.message componentsSeparatedByString:@"::"] count]>1) {
+                            if ([[[self.message componentsSeparatedByString:@"::"] objectAtIndex:0] isEqualToString:@"WIFI"]) {
+                                self.message = [[self.message componentsSeparatedByString:@"::"] objectAtIndex:1];
+                                aConnection.isWiFi = YES;
+                            }
+                            else {
+                                self.message = [[self.message componentsSeparatedByString:@"::"] objectAtIndex:1];
+                                aConnection.isWiFi = NO;
+                            }
+                        }
+                    }
 					else if (partType == PART_TYPE_BINARY)
 						contentsType = kMessageData;
 					else if (partType == PART_TYPE_IMAGE)

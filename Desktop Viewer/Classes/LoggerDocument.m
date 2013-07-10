@@ -153,13 +153,11 @@
 		// if prefs say we shouldn't keep previous logs around
 		currentConnection = nil;
 		[self willChangeValueForKey:@"attachedLogsPopupNames"];
-		if (![[NSUserDefaults standardUserDefaults] boolForKey:kPrefKeepMultipleRuns])
-		{
+		
             NSLog(@"Removing previous connections!");
 			while ([attachedLogs count] > 1)
-                
-				[attachedLogs removeObjectAtIndex:0];
-		}
+                [attachedLogs removeObjectAtIndex:0];
+		
 		[self didChangeValueForKey:@"attachedLogsPopupNames"];
 		currentConnection = newConnection;
         
@@ -496,6 +494,7 @@
 }
 
 
+
 ////////////////////////////
 
 
@@ -666,7 +665,10 @@ didReceiveMessages:(NSArray *)theMessages
 }
 
 -(void)updateClientInfo {
-    NSLog(@"Update Client Info?");
+    
+    NSLog(@"Updating Client Info");
+    [(LoggerAppDelegate *)[NSApp delegate] reloadSubtable];
+    
 }
 
 

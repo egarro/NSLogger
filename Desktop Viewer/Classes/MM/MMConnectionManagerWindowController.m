@@ -173,12 +173,14 @@
                     break;
             }
             
+            
             if (document.currentConnection.isWiFi) {
                 w++;
             }
             else {
                 p++;
             }
+            
             
             c += [document.currentConnection.clientCrashCount intValue];
 

@@ -1,3 +1,4 @@
+
 /*
  * LoggerAppDelegate.h
  *
@@ -289,7 +290,7 @@ NSString * const kPref_ApplicationFilterSet = @"appFilterSet";
 	return NO;
 }
 
-- (void)newConnection:(LoggerConnection *)aConnection fromTransport:(LoggerTransport *)aTransport
+- (void)newConnection:(LoggerConnection *)newConnection fromTransport:(LoggerTransport *)aTransport
 {
     
     NSLog(@"LoggerAppDelegate newConnection:fromTransport: %@, with status:%@",aTransport.transportInfoString,aTransport.transportStatusString);
@@ -307,30 +308,37 @@ NSString * const kPref_ApplicationFilterSet = @"appFilterSet";
 	{
 		if (![doc isKindOfClass:[LoggerDocument class]])
 			continue;
+        
+        
+        NSMutableArray *discardedItems = [NSMutableArray array];
+        
 		for (LoggerConnection *c in doc.attachedLogs)
 		{
-			if (c != aConnection && [aConnection isReconnectionFromClient:c])
+			if (newConnection != c && [newConnection isReconnectionFromClient:c])
 			{
-				// recycle this document window, bring it to front
-				aConnection.reconnectionCount = ((LoggerConnection *)[doc.attachedLogs lastObject]).reconnectionCount + 1;
-				[doc addConnection:aConnection];
+				//Recycle this document window, bring it to front
+                //Kill previous connection, add new one with updated reconnection count:
+                
+				newConnection.reconnectionCount = c.reconnectionCount + 1;
+                                
+                //Kill c:
+                [c shutdown];
+				[discardedItems addObject:c];
+    
+                //
+                [doc addConnection:newConnection];
 				
                 return;
 			}
 		}
+        
+        [doc.attachedLogs removeObjectsInArray:discardedItems];
+        
 	}
 
-
-    //Check the MAC Address of this new incoming connection
-    if (aConnection.clientMACAddress != nil &&
-        [aConnection.clientMACAddress rangeOfString:@":"].location != NSNotFound) {
-        aConnection.isWiFi = YES;
-    }
-    else {
-        aConnection.isWiFi = NO;
-    }
+    
 	// Instantiate a new document for this connection
-	LoggerDocument *doc = [[LoggerDocument alloc] initWithConnection:aConnection];
+	LoggerDocument *doc = [[LoggerDocument alloc] initWithConnection:newConnection];
 	//[docController addDocument:doc];
     //[self.documents addObject:doc];
     

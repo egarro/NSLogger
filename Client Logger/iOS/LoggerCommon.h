@@ -90,6 +90,7 @@
 #define PART_KEY_UNIQUEID		25			// for remote device identification, part of LOGMSG_TYPE_CLIENTINFO
 #define PART_KEY_MACADDRESS		26			// for remote device identification, part of LOGMSG_TYPE_CLIENTINFO
 #define PART_KEY_CRASHCOUNT		27			// for remote device identification, part of LOGMSG_TYPE_CLIENTINFO
+#define PART_KEY_CONNECTION		28			// for remote device identification, part of LOGMSG_TYPE_CLIENTINFO
 
 // Area starting at which you may define your own constants
 #define PART_KEY_USER_DEFINED	100

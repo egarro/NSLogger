@@ -57,7 +57,7 @@
 
 + (NSDictionary *)defaultPreferences;
 
-- (void)newConnection:(LoggerConnection *)aConnection fromTransport:(LoggerTransport *)aTransport;
+- (void)newConnection:(LoggerConnection *)newConnection fromTransport:(LoggerTransport *)aTransport;
 
 - (NSMutableArray *)defaultFilters;
 - (NSNumber *)nextUniqueFilterIdentifier:(NSArray *)filters;

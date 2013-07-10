@@ -42,8 +42,10 @@ char sConnectionAssociatedObjectKey = 1;
 
 @synthesize delegate;
 @synthesize messages;
-@synthesize reconnectionCount, connected, restoredFromSave, attachedToWindow, isWiFi;
-@synthesize clientName, clientVersion, clientOSName, clientOSVersion, clientDevice, clientAddress, clientUDID, clientMACAddress, clientCrashCount;
+@synthesize reconnectionCount, connected, restoredFromSave, attachedToWindow;
+@synthesize isWiFi = _isWiFi;
+@synthesize clientName, clientVersion, clientOSName, clientOSVersion, clientConnection;
+@synthesize clientDevice, clientAddress, clientUDID, clientMACAddress, clientCrashCount;
 @synthesize messageProcessingQueue;
 @synthesize filenames, functionNames;
 
@@ -89,6 +91,7 @@ char sConnectionAssociatedObjectKey = 1;
 	[clientUDID release];
     [clientMACAddress release];
     [clientCrashCount release];
+    [clientConnection release];
 	[filenames release];
 	[functionNames release];
 	[super dealloc];
@@ -122,34 +125,28 @@ char sConnectionAssociatedObjectKey = 1;
     if (resp) {
         if (clientMACAddress != nil &&
             [clientMACAddress rangeOfString:@":"].location != NSNotFound) {
-            isWiFi = YES;
+
             if (aConnection.clientMACAddress != nil &&
                 [aConnection.clientMACAddress rangeOfString:@":"].location != NSNotFound)  {
                 
-                aConnection.isWiFi = YES;
                 if (!isSame(clientMACAddress, aConnection.clientMACAddress)) {
                     resp = NO;
                 }
                 
             }
             else {
-                
                 aConnection.clientMACAddress = clientMACAddress;
-                aConnection.isWiFi = NO;
-    
             }
         }
         else {
-            isWiFi = NO;
+
             if (aConnection.clientMACAddress != nil &&
                 [aConnection.clientMACAddress rangeOfString:@":"].location != NSNotFound)  {
                 
                 clientMACAddress = aConnection.clientMACAddress;
-                aConnection.isWiFi = YES;
+
             }
-            else {
-                aConnection.isWiFi = NO;
-            }
+
         }
         
         
@@ -169,24 +166,10 @@ char sConnectionAssociatedObjectKey = 1;
         }
         
     }
-    else {
-        if (clientMACAddress != nil &&
-            [clientMACAddress rangeOfString:@":"].location != NSNotFound) {
-            isWiFi = YES;
-        }
-        else {
-            isWiFi = NO;
-        }
-        
     
-    }
-    
-    
-    
-    
+
+
     return resp;
-    
-    
 }
 
 
@@ -335,9 +318,29 @@ char sConnectionAssociatedObjectKey = 1;
 		[messages removeAllObjects];
 }
 
+-(void)setIsWiFi:(BOOL)isWiFi {
+    BOOL previousState = self->_isWiFi;
+    
+    if (previousState) {
+        if (!isWiFi) {
+            //Connection type changing: issue a Notification:
+            [self.delegate updateClientInfo];
+        }
+    }
+    else {
+        if (isWiFi) {
+            //Connection type changing: issue a Notification:
+            [self.delegate updateClientInfo];
+        }
+    }
+    
+    self->_isWiFi = isWiFi;
+}
+
+
 - (void)clientInfoReceived:(LoggerMessage *)message
 {
-	// Insert message at first position in the message list. In the unlikely event there is
+    // Insert message at first position in the message list. In the unlikely event there is
 	// an existing ClientInfo message at this position, just replace it. Also, don't fire
 	// a "didReceiveMessages". The rationale behind this is that if the connection just came in,
 	// we are not yet attached to a window and when attaching, the window will refresh all messages.
@@ -377,6 +380,9 @@ char sConnectionAssociatedObjectKey = 1;
 		value = [parts objectForKey:[NSNumber numberWithInteger:PART_KEY_CRASHCOUNT]];
 		if (value != nil)
 			self.clientCrashCount = value;
+		value = [parts objectForKey:[NSNumber numberWithInteger:PART_KEY_CONNECTION]];
+		if (value != nil)
+			self.clientConnection = value;
         
 		[[NSNotificationCenter defaultCenter] postNotificationName:kShowStatusInStatusWindowNotification
 															object:self];
@@ -468,6 +474,7 @@ char sConnectionAssociatedObjectKey = 1;
 		clientUDID = [[aDecoder decodeObjectForKey:@"clientUDID"] retain];
         clientMACAddress = [[aDecoder decodeObjectForKey:@"clientMACAddress"] retain];
         clientCrashCount = [[aDecoder decodeObjectForKey:@"clientCrashCount"] retain];
+        clientConnection = [[aDecoder decodeObjectForKey:@"clientConnection"] retain];
         
 		parentIndexesStack = [[aDecoder decodeObjectForKey:@"parentIndexes"] retain];
 		filenames = [[aDecoder decodeObjectForKey:@"filenames"] retain];
@@ -507,6 +514,8 @@ char sConnectionAssociatedObjectKey = 1;
 		[aCoder encodeObject:clientMACAddress forKey:@"clientMACAddress"];
     if (clientCrashCount != nil)
 		[aCoder encodeObject:clientCrashCount forKey:@"clientCrashCount"];
+    if (clientConnection != nil)
+		[aCoder encodeObject:clientConnection forKey:@"clientConnection"];
     
 	[aCoder encodeObject:filenames forKey:@"filenames"];
 	[aCoder encodeObject:functionNames forKey:@"functionNames"];

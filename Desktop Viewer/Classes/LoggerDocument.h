@@ -62,7 +62,7 @@ typedef enum {
 }
 
 @property (nonatomic, readwrite) NSUInteger tag;
-@property (nonatomic, readonly) NSArray *attachedLogs;
+@property (nonatomic, readonly) NSMutableArray *attachedLogs;
 @property (nonatomic, retain) NSNumber *indexOfCurrentVisibleLog;
 @property (nonatomic, assign) LoggerConnection *currentConnection;
 @property (nonatomic, assign) DocumentStatus status;
@@ -82,5 +82,6 @@ typedef enum {
 - (void)destroyMainWindow;
 - (void)showMainWindow;
 - (void)saveThisLog;
+- (void)updateClientInfo;
 
 @end

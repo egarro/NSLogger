@@ -550,6 +550,7 @@ static void AcceptSocketCallback(CFSocketRef sock, CFSocketCallBackType type, CF
 	{
 		// Locate the connection to which this stream is attached
 		LoggerNativeConnection *cnx = nil;
+        
 		for (cnx in connections)
 		{
 			if (cnx.readStream == theStream)

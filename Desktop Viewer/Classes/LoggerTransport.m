@@ -59,26 +59,27 @@
 {
     NSLog(@"Connection entry point:");
     
-    BOOL isNew = YES;
-    for (LoggerConnection *existingConnection in connections) {
-        if ([existingConnection isReconnectionFromClient:aConnection]) {
-            isNew = NO;
-            int count = existingConnection.reconnectionCount + 1;
-            [self removeConnection:existingConnection];
-            aConnection.reconnectionCount = count;
-        }
-    }
-    
-    if (isNew) {
-        //This will set the isWiFi property for this connection:
-        if (aConnection.clientMACAddress != nil &&
-            [aConnection.clientMACAddress rangeOfString:@":"].location != NSNotFound) {
-            aConnection.isWiFi = YES;
-        }
-        else {
-            aConnection.isWiFi = NO;
-        }
-    }
+//    BOOL isNew = YES;
+//    for (LoggerConnection *existingConnection in connections) {
+//        if ([existingConnection isReconnectionFromClient:aConnection]) {
+//            isNew = NO;
+//            int count = existingConnection.reconnectionCount + 1;
+//            [self removeConnection:existingConnection];
+//            aConnection.reconnectionCount = count;
+//        }
+//    }
+//    
+//    //At this point aConnection details are all nil!
+//    if (isNew) {
+//        //This will set the isWiFi property for this connection:
+//        if ([aConnection.clientConnection isEqualToString:@"WIFI"]) {
+//            aConnection.isWiFi = YES;
+//        }
+//        else {
+//            aConnection.isWiFi = NO;
+//        }
+//        
+//    }
     
 	[connections addObject:aConnection];
 }
